@@ -3,6 +3,7 @@
 import { Button, Details } from "nhsuk-react-components";
 import { Link } from "react-router-dom";
 
+import { ImportantInsetText } from "@/components/ImportantInsetText";
 import { LearnMoreAboutHivAndAidsLink } from "@/components/LearnMoreAboutHivAndAidsLink";
 import { useContent, usePageTitle } from "@/hooks";
 import FormPageLayout from "@/layouts/FormPageLayout";
@@ -36,9 +37,9 @@ export default function GetSelfTestKitPage() {
         ))}
       </ul>
 
-      <div className="nhsuk-inset-text">
+      <ImportantInsetText>
         <p>{content.infoBox.text}</p>
-      </div>
+      </ImportantInsetText>
 
       <h2>{content.howItWorks.heading}</h2>
       <p>{content.howItWorks.deliveryInfo}</p>

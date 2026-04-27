@@ -60,6 +60,10 @@ describe("GetSelfTestKitPage", () => {
     expect(screen.getByText(/HIV can take up to 45 days after exposure/)).toBeInTheDocument();
   });
 
+  it("renders the inset text with a visually hidden label for screen readers", () => {
+    expect(screen.getByText("Important Information:")).toHaveClass("nhsuk-u-visually-hidden");
+  });
+
   it("renders the how it works section", () => {
     expect(screen.getByRole("heading", { name: "How it works" })).toBeInTheDocument();
   });
