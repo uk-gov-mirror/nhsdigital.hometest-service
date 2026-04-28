@@ -197,4 +197,24 @@ describe("order-result-lambda handler", () => {
       "fatal",
     );
   });
+
+  it("returns 409 if order is already complete", async () => {
+    validateDBDataMock.mockResolvedValueOnce({
+      success: false,
+      error: {
+        errorCode: 409,
+        errorType: "conflict",
+        errorMessage: "Order order-uid-1 is already complete",
+        severity: "error",
+      },
+    });
+    const res = await handler(event);
+    expect(res.statusCode).toBe(409);
+    expect(createFhirErrorResponse).toHaveBeenCalledWith(
+      409,
+      "conflict",
+      "Order order-uid-1 is already complete",
+      "error",
+    );
+  });
 });

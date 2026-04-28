@@ -8,6 +8,7 @@ import {
   extractPatientIdFromFHIRObservation,
   extractSupplierIdFromFHIRObservation,
 } from "../../lib/fhir-observation-extractors";
+import { OrderStatus } from "../../lib/types/status";
 import { getCorrelationIdFromEventHeaders } from "../../lib/utils/utils";
 import { generateReadableError } from "../../lib/utils/validation-utils";
 import {
@@ -151,6 +152,16 @@ export async function validateDBData(
     );
     return successResult({
       isIdempotent: true,
+    });
+  }
+
+  if (testOrderResult.order_status_code === OrderStatus.Complete) {
+    console.error(name, "Order is already complete, rejecting result", { orderUid, correlationId });
+    return errorResult({
+      errorCode: 409,
+      errorType: "conflict",
+      errorMessage: `Order ${orderUid} is already complete`,
+      severity: "error",
     });
   }
 

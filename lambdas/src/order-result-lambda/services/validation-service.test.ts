@@ -3,6 +3,7 @@ import { Observation } from "fhir/r4";
 
 import * as fhirExtractors from "../../lib/fhir-observation-extractors";
 import { ResultStatus } from "../../lib/types/status";
+import { OrderStatus } from "../../lib/types/status";
 import * as utils from "../../lib/utils/utils";
 import * as validationUtils from "../../lib/utils/validation-utils";
 import { InterpretationCode, orderResultFHIRObservationSchema } from "../models";
@@ -210,6 +211,21 @@ describe("validation-service", () => {
       if (result.success) {
         expect(result.data).toEqual({
           isIdempotent: true,
+        });
+      }
+    });
+
+    it("returns conflict when order is already complete", async () => {
+      testOrderResult.correlation_id = undefined; // skip idempotency
+      testOrderResult.order_status_code = OrderStatus.Complete;
+      const result = await validation.validateDBData(identifiers, observation, testOrderResult);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toEqual({
+          errorCode: 409,
+          errorType: "conflict",
+          errorMessage: "Order order-uid is already complete",
+          severity: "error",
         });
       }
     });
