@@ -174,3 +174,8 @@ junit.xml
 
 # Test configuration with personal credentials
 tests/users.ts
+
+# Goose migrator build artifacts
+lambdas/goose-migrator-lambda/goose-migrator-lambda.zip
+lambdas/goose-migrator-lambda/src/bootstrap
+.migrator-build-cache/
