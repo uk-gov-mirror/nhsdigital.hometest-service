@@ -29,7 +29,8 @@ export interface OrderPayload {
 }
 
 export class OrderTestData {
-  static readonly PREVENTX_SUPPLIER_ID = "c1a2b3c4-1234-4def-8abc-123456789abc";
+  // UUID from goose migration 000002_seed_home_test_data.sql
+  static readonly PREVENTX_SUPPLIER_ID = "11111111-1111-4111-8111-111111111111";
   static readonly PREVENTX_SUPPLIER_NAME = "Preventx";
 
   static readonly defaultOrder: OrderPayload = {

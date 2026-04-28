@@ -122,7 +122,7 @@ After running `pnpm start`, use targeted commands instead of restarting everythi
   pnpm run local:deploy
   ```
 
-- **Database schema or seed changes** (rerun DB migration container, including goose migrations):
+- **Database schema or seed changes** (rerun goose migrations and seed data):
 
   ```shell
   pnpm run local:service:db:migrate
@@ -170,7 +170,7 @@ After running `pnpm start`, use targeted commands instead of restarting everythi
   pnpm run local:frontend:restart
   ```
 
-- **Restart backend containers only** (Postgres, LocalStack, WireMock, db-migrate):
+- **Restart backend containers only** (Postgres, LocalStack, WireMock):
 
   ```shell
   pnpm run local:compose -- stop postgres-db localstack wiremock
