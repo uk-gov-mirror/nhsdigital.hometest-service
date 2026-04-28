@@ -3,7 +3,7 @@ import cors from "@middy/http-cors";
 import httpErrorHandler from "@middy/http-error-handler";
 import httpSecurityHeaders from "@middy/http-security-headers";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { ValidationError } from "src/lib/utils/validation-result";
+import { ValidationError } from "src/lib/validation";
 
 import { OrderStatusUpdateParams } from "../lib/db/order-status-db";
 import { createFhirErrorResponse, createFhirResponse } from "../lib/fhir-response";

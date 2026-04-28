@@ -181,6 +181,26 @@ resource "aws_iam_role_policy" "lambdas_sqs_publish" {
   })
 }
 
+resource "aws_iam_role_policy" "lambdas_lambda_invoke" {
+  name = "${var.project_name}-lambdas-lambda-invoke"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = [
+          module.result_status_lambda.lambda_function.arn,
+        ]
+      }
+    ]
+  })
+}
+
 resource "aws_api_gateway_rest_api" "api" {
   name        = "${var.project_name}-api"
   description = "API Gateway for ${var.project_name}"
@@ -507,6 +527,25 @@ module "get_results_lambda" {
     DB_SSL         = "false"
     ALLOW_ORIGIN   = "http://localhost:3000"
   }
+}
+
+resource "aws_lambda_function" "hiv_results_lambda" {
+  filename         = "${path.module}/../../lambdas/dist/hiv-result-processor-lambda.zip"
+  function_name    = "${var.project_name}-hiv-results-processor"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  source_code_hash = filebase64sha256("${path.module}/../../lambdas/dist/hiv-result-processor-lambda.zip")
+
+  environment {
+    variables = {
+      NODE_OPTIONS              = "--enable-source-maps"
+      RESULT_STATUS_LAMBDA_NAME = module.result_status_lambda.lambda_function.function_name
+      AWS_REGION                = "eu-west-2"
+    }
+  }
+
+  depends_on = [aws_iam_role_policy_attachment.lambda_basic]
 }
 
 module "order_status_lambda" {

@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 
 import { getCorrelationIdFromEventHeaders } from "../../lib/utils/utils";
-import { ValidationResult, errorResult, successResult } from "../../lib/utils/validation-result";
+import { ValidationResult, errorResult, successResult } from "../../lib/validation";
 
 const name = "order-status-lambda";
 

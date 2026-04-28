@@ -11,6 +11,7 @@ import {
   type ReminderDispatchConfig,
   getReminderDispatchConfigFromEnv,
 } from "./config/dispatch-config";
+import { CancelStaleRemindersCommand } from "./db/commands/cancel-stale-reminders";
 import { MarkReminderAsFailedCommand } from "./db/commands/mark-reminder-as-failed";
 import { MarkReminderAsQueuedCommand } from "./db/commands/mark-reminder-as-queued";
 import { ScheduleReminderCommand } from "./db/commands/schedule-reminder";
@@ -22,6 +23,7 @@ import { ReminderProcessor } from "./processor/reminder-processor";
 export interface Environment {
   reminderProcessor: ReminderProcessor;
   getScheduledRemindersQuery: GetScheduledRemindersQuery;
+  cancelStaleRemindersCommand: CancelStaleRemindersCommand;
   reminderDispatchConfig: ReminderDispatchConfig;
 }
 
@@ -34,6 +36,7 @@ export function buildEnvironment(): Environment {
   const dbClient = new PostgresDbClient(postgresConfigFromEnv(secretsClient));
   const orderStatusDb = new OrderStatusService(dbClient);
   const getScheduledRemindersQuery = new GetScheduledRemindersQuery(dbClient);
+  const cancelStaleRemindersCommand = new CancelStaleRemindersCommand(dbClient);
   const markReminderAsQueuedCommand = new MarkReminderAsQueuedCommand(dbClient);
   const markReminderAsFailedCommand = new MarkReminderAsFailedCommand(dbClient);
   const scheduleReminderCommand = new ScheduleReminderCommand(dbClient);
@@ -65,6 +68,7 @@ export function buildEnvironment(): Environment {
   return {
     reminderProcessor,
     getScheduledRemindersQuery,
+    cancelStaleRemindersCommand,
     reminderDispatchConfig: getReminderDispatchConfigFromEnv(),
   };
 }

@@ -13,6 +13,7 @@ infrastructure-as-code.
   - [Setup](#setup)
     - [Prerequisites](#prerequisites)
       - [mise](#mise)
+      - [Local Secrets](#local-secrets)
   - [Usage](#usage)
     - [Local Development](#local-development)
     - [Common local workflows](#common-local-workflows)
@@ -50,8 +51,8 @@ infrastructure-as-code.
 4. Install dependencies for the root, lambdas, and tests, start the local development environment
 
    ```shell
-   npm install && npm --prefix ./lambdas install
-   npm run start
+   pnpm install
+   pnpm run start
    ```
 
 ### Prerequisites
@@ -96,7 +97,7 @@ Before starting, ensure the following files are present in
 To spin up the entire local environment (LocalStack, Postgres, and the Next.js Frontend):
 
 ```shell
-npm start
+pnpm start
 ```
 
 This command:
@@ -108,35 +109,35 @@ This command:
 To stop the environment:
 
 ```shell
-npm run stop
+pnpm run stop
 ```
 
 ### Common local workflows
 
-After running `npm start`, use targeted commands instead of restarting everything:
+After running `pnpm start`, use targeted commands instead of restarting everything:
 
 - **Lambda code changes** (build/package/deploy lambdas to LocalStack):
 
   ```shell
-  npm run local:deploy
+  pnpm run local:deploy
   ```
 
 - **Database schema or seed changes** (rerun DB migration container, including goose migrations):
 
   ```shell
-  npm run local:service:db:migrate
+  pnpm run local:service:db:migrate
   ```
 
 - **Terraform infrastructure changes** (apply infra updates to LocalStack without restarting containers):
 
   ```shell
-  npm run local:terraform:apply
+  pnpm run local:terraform:apply
   ```
 
   This expects the backend containers, including LocalStack, to already be running. If they are not, start them first:
 
   ```shell
-  npm run local:backend:start
+  pnpm run local:backend:start
   ```
 
   To switch local integrations between WireMock and real upstreams, pass Terraform variables when applying - some examples below.
@@ -144,13 +145,13 @@ After running `npm start`, use targeted commands instead of restarting everythin
   To only use WireMock everywhere (default mode - only needed to switch over):
 
   ```shell
-  TF_VAR_local_service_mode=wiremock npm run local:terraform:apply # this is the default mode, only needed to switch over
+  TF_VAR_local_service_mode=wiremock pnpm run local:terraform:apply # this is the default mode, only needed to switch over
   ```
 
   To not use WireMock anywhere (real downstream APIs):
 
   ```shell
-  TF_VAR_local_service_mode=real npm run local:terraform:apply
+  TF_VAR_local_service_mode=real pnpm run local:terraform:apply
   ```
 
   To use WireMock except for specific services, pass only the overrides you need:
@@ -160,47 +161,47 @@ After running `npm start`, use targeted commands instead of restarting everythin
   TF_VAR_local_supplier_service_url_override=https://supplier.example.com \
   TF_VAR_local_use_ui_auth_url_override=https://auth.sandpit.signin.nhs.uk \
   TF_VAR_local_postcode_lookup_base_url_override=https://api.os.uk/search/places/v1 \
-  npm run local:terraform:apply # npm run local:frontend:restart - if overriding UI auth
+  pnpm run local:terraform:apply # pnpm run local:frontend:restart - if overriding UI auth
   ```
 
   If you change UI-facing auth settings, restart the frontend so it picks up the updated `ui/.env.local` values:
 
   ```shell
-  npm run local:frontend:restart
+  pnpm run local:frontend:restart
   ```
 
 - **Restart backend containers only** (Postgres, LocalStack, WireMock, db-migrate):
 
   ```shell
-  npm run local:compose -- stop postgres-db localstack wiremock
-  npm run local:backend:start
+  pnpm run local:compose -- stop postgres-db localstack wiremock
+  pnpm run local:backend:start
   ```
 
 - **Restart frontend only**:
 
   ```shell
-  npm run local:frontend:restart
+  pnpm run local:frontend:restart
   ```
 
 - **Start/stop backend only**:
 
   ```shell
-  npm run local:backend:start
-  npm run local:compose -- stop postgres-db localstack wiremock
+  pnpm run local:backend:start
+  pnpm run local:compose -- stop postgres-db localstack wiremock
   ```
 
 - **Start/stop frontend only**:
 
   ```shell
-  npm run local:frontend:start
-  npm run local:compose -- stop ui
+  pnpm run local:frontend:start
+  pnpm run local:compose -- stop ui
   ```
 
 - **Start/stop specified lambda**
 
   ```shell
-  LAMBDA={lambda_name} npm run local:service:lambda:enable
-  LAMBDA={lambda_name} npm run local:service:lambda:disable
+  LAMBDA={lambda_name} pnpm run local:service:lambda:enable
+  LAMBDA={lambda_name} pnpm run local:service:lambda:disable
   ```
 
 ### Frontend
@@ -208,6 +209,12 @@ After running `npm start`, use targeted commands instead of restarting everythin
 The frontend is located in the `/ui` directory. It is a **React Router SPA** built with Next.js as
 a static-export shell — not a standard Next.js application.
 
+1. cd to `/ui` directory.
+2. Run `pnpm install`.
+3. Run `pnpm run dev`.
+
+- When creating a new page, use the PageLayout component found in `/ui/src/components`.
+- To create a new route, create a directory with the name of your route in `/ui/src/app`, and add a `page.tsx` file within.
 - All route/page components live under `ui/src/routes/` and are registered in `ui/src/app.tsx`
   (the React Router config).
 - Layout components live under `ui/src/layouts/`. Use these (e.g. `FormPageLayout`,

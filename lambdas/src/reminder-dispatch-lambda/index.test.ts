@@ -33,6 +33,7 @@ describe("reminder-dispatch-lambda", () => {
     [OrderStatusReminderRecord, unknown]
   >();
   const mockGetScheduledReminders = jest.fn<Promise<OrderStatusReminderRecord[]>, [unknown]>();
+  const mockCancelStaleReminders = jest.fn<Promise<{ cancelledCount: number }>, []>();
 
   const mockedInit = jest.mocked(init);
 
@@ -53,10 +54,12 @@ describe("reminder-dispatch-lambda", () => {
 
     mockGetScheduledReminders.mockResolvedValue([DISPATCHED_REMINDER_1, DISPATCHED_REMINDER_2]);
     mockProcessReminder.mockResolvedValue("dispatched");
+    mockCancelStaleReminders.mockResolvedValue({ cancelledCount: 0 });
 
     mockedInit.mockReturnValue({
       reminderProcessor: { process: mockProcessReminder },
       getScheduledRemindersQuery: { execute: mockGetScheduledReminders },
+      cancelStaleRemindersCommand: { execute: mockCancelStaleReminders },
       reminderDispatchConfig: {
         enabledReminderStatuses: new Set([OrderStatusCodes.DISPATCHED]),
         reminderConfiguration: {
@@ -67,6 +70,23 @@ describe("reminder-dispatch-lambda", () => {
         },
       },
     } as unknown as ReturnType<typeof init>);
+  });
+
+  it("cancels stale reminders before processing scheduled ones", async () => {
+    const callOrder: string[] = [];
+    mockCancelStaleReminders.mockImplementation(async () => {
+      callOrder.push("cancel");
+      return { cancelledCount: 0 };
+    });
+    mockGetScheduledReminders.mockImplementation(async () => {
+      callOrder.push("getScheduled");
+      return [DISPATCHED_REMINDER_1, DISPATCHED_REMINDER_2];
+    });
+
+    await lambdaHandler(mockEvent, {} as Context);
+
+    expect(mockCancelStaleReminders).toHaveBeenCalledTimes(1);
+    expect(callOrder).toEqual(["cancel", "getScheduled"]);
   });
 
   it("creates the processor context with the correct invocation values", async () => {

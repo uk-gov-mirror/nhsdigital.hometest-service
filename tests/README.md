@@ -7,15 +7,15 @@ This directory contains the Playwright test framework for the hometest-service p
 1. Install dependencies:
 
    ```bash
-   cd test
-   npm install
-   npx playwright install
+   cd tests
+   pnpm install
+   pnpm exec playwright install
    ```
 
 2. Install browser binaries (if needed):
 
    ```bash
-   npx playwright install chromium firefox webkit
+   pnpm exec playwright install chromium firefox webkit
    ```
 
 3. Set up local user credentials (for local testing only):
@@ -31,19 +31,19 @@ This directory contains the Playwright test framework for the hometest-service p
 - Run all tests:
 
   ```bash
-  ENV=local npx playwright test
+  ENV=local pnpm exec playwright test
   ```
 
 - Run tests in headed mode (with browser UI):
 
   ```bash
-  ENV=local npx playwright test:headed
+  ENV=local pnpm exec playwright test:headed
   ```
 
 - Run tests in debug mode:
 
   ```bash
-  ENV=local npx playwright test:debug
+  ENV=local pnpm exec playwright test:debug
   ```
 
 ## Project Structure
@@ -88,14 +88,14 @@ Set the `ENV` variable to specify which environment to test against:
 ```bash
 # Linux/macOS
 export ENV=dev
-npm test
+pnpm test
 
 # Or inline
-ENV=dev npm test
+ENV=dev pnpm test
 
 # Windows (PowerShell)
 $env:ENV="dev"
-npm test
+pnpm test
 ```
 
 **If `ENV` is not set, tests will fail with an error.**
@@ -249,7 +249,7 @@ WireMock provides a mock authentication server that simulates NHS Login without 
 
 Run
 
-npm start - as default it will build env with wiremocks
+pnpm start - as default it will build env with wiremocks
 
 Set `AUTH_TYPE=wiremock` in `configuration/.env.local`:
 
@@ -274,7 +274,7 @@ Set `AUTH_TYPE=sandpit` in `configuration/.env.local`:
 
 Run
 
-npm start
+pnpm start
 
 when it finishes
 
@@ -282,7 +282,7 @@ when it finishes
 cd hometest-service
 TF_VAR_local_service_mode=wiremock \
 TF_VAR_local_use_ui_auth_url_override=<https://auth.sandpit.signin.nhs.uk> \
-npm run local:terraform:apply
+pnpm run local:terraform:apply
 ```
 
 **Prerequisites:**

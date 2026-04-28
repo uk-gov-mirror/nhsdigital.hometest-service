@@ -1,5 +1,5 @@
 import { extractIdFromReference } from "../../lib/utils/fhir-utils";
-import { ValidationResult, errorResult, successResult } from "../../lib/utils/validation-result";
+import { ValidationResult, errorResult, successResult } from "../../lib/validation";
 
 const name = "order-status-lambda";
 

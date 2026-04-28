@@ -86,19 +86,19 @@ jobs:
         with:
           path: |
             /home/runner/.cache/ms-playwright/
-          key: playwright-${{ runner.os }}-${{ hashFiles('tests/package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('tests/pnpm-lock.yaml') }}
           restore-keys: |
             playwright-${{ runner.os }}-
 
       - name: "Install Playwright browsers"
         timeout-minutes: 3
         working-directory: tests
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: "Start the application"
         if: env.TARGET_ENV == 'local'
         run: |
-          npm run local:start
+          pnpm run local:start
         env:
           BUILDKIT_PROGRESS: plain # or "quiet" to fully suppress build output
           DOCKER_CLI_HINTS: false # removes "What's next?" hints
@@ -149,7 +149,7 @@ jobs:
           FILTER="${INPUT_TEST_FILTER}"
 
           # Build the command
-          CMD="npx playwright test"
+          CMD="pnpm exec playwright test"
 
           # Add browser project
           if [ "$BROWSER" != "all" ]; then

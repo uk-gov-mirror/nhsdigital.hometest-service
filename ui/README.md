@@ -21,7 +21,7 @@ The application uses a hybrid approach:
 First, run the development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -33,7 +33,7 @@ The application uses client-side routing with React Router. You can start editin
 Build the static export:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 This creates a `build/` directory with static HTML, CSS, and JavaScript files that can be deployed to any static hosting service.
@@ -43,7 +43,7 @@ This creates a `build/` directory with static HTML, CSS, and JavaScript files th
 To test the production build locally:
 
 ```bash
-npm run serve:static
+pnpm run serve:static
 ```
 
 This builds the application and serves it at [http://localhost:8085](http://localhost:8085).
@@ -52,7 +52,7 @@ This builds the application and serves it at [http://localhost:8085](http://loca
 
 The application requires the following environment variables:
 
-- `NEXT_PUBLIC_BACKEND_URL` - The backend API  URL
+- `NEXT_PUBLIC_BACKEND_URL` - The backend API URL
 
 ### Local Development
 
@@ -72,10 +72,10 @@ the technologies used in this project:
 In development, all React context state is accessible via `globalThis.__appDebug` in the browser console. Values are evaluated lazily via property getters, so you always see the current state. This is a no-op in production.
 
 ```js
-__appDebug.order      // OrderContext — order answers collected through the journey
-__appDebug.auth       // AuthContext — authenticated user
-__appDebug.navigation // NavigationContext — current step and step history
-__appDebug.postcode   // PostcodeLookupContext — address lookup results
+__appDebug.order; // OrderContext — order answers collected through the journey
+__appDebug.auth; // AuthContext — authenticated user
+__appDebug.navigation; // NavigationContext — current step and step history
+__appDebug.postcode; // PostcodeLookupContext — address lookup results
 ```
 
 Debug registration follows a **boundary-style devtools pattern** — state providers contain no debug code. Instead, two dedicated devtools components handle all registration:
@@ -89,16 +89,16 @@ These components are env-gated and render nothing. The core utility is in `src/l
 
 Since this is a static SPA, you can deploy the built files to any static hosting service:
 
-1. Build the static files: `npm run build`
+1. Build the static files: `pnpm run build`
 2. Deploy the `build/` directory to your hosting service (e.g., AWS S3, Azure Static Web Apps)
 3. Configure the hosting service to serve `index.html` for all routes (for client-side routing support)
 
 ```bash
-npm test
+pnpm test
 ```
 
 Run tests in watch mode:
 
 ```bash
-npm run test:watch
+pnpm run test:watch
 ```

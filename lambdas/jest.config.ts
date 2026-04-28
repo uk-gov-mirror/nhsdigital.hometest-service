@@ -22,6 +22,7 @@ const config: Config = {
   ],
   moduleNameMapper: {
     "^@hometest-service/shared/(.*)$": "<rootDir>/../shared/$1",
+    "^@middy/(.*)$": "<rootDir>/node_modules/@middy/$1/index.js",
   },
   transform: {
     "^.+\\.ts$": [
@@ -34,7 +35,7 @@ const config: Config = {
     "^.+\\.jsx?$": ["babel-jest", { configFile: "./babel.config.cjs" }],
   },
   transformIgnorePatterns: [
-    "/node_modules/(?!(@middy|uuid|@aws-sdk)/)", // add ESM packages here
+    String.raw`/node_modules/(?!(\.pnpm/)?(@middy|uuid|@aws-sdk))`, // add ESM packages here
   ],
 };
 export default config;

@@ -3,7 +3,7 @@ name: "Run NPM Tests"
 description: "Run Jest tests with coverage reporting"
 inputs:
   working-directory:
-    description: "Directory containing the npm project (e.g., ui, lambdas)"
+    description: "Directory containing the project (e.g., ui, lambdas)"
     required: true
   nodejs-version:
     description: "Node.js version to use"
@@ -27,10 +27,10 @@ runs:
   steps:
     - name: "Run test suite"
       shell: bash
+      run: mise exec -- pnpm -C ${{ inputs.working-directory }} run test --ci
       env:
         FORCE_COLOR: true
         WORKING_DIR: ${{ inputs.working-directory }}
-      run: mise exec -- npm --prefix "$WORKING_DIR" run test -- --ci
 
     - name: "Upload test results"
       uses: actions/upload-artifact@v7

@@ -17,21 +17,22 @@ runs:
         cache: true
         install: true
 
-    - name: Cache node_modules
+    - name: Get pnpm store directory
+      id: pnpm-store
+      shell: bash
+      run: echo "path=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+    - name: Cache pnpm store
       uses: actions/cache@v5
       with:
-        path: |
-          node_modules
-          ui/node_modules
-          lambdas/node_modules
-          tests/node_modules
-        key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+        path: ${{ steps.pnpm-store.outputs.path }}
+        key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          node-modules-${{ runner.os }}-
+          pnpm-store-${{ runner.os }}-
 
-    - name: Install npm dependencies
+    - name: Install pnpm dependencies
       shell: bash
       run: |
-        echo "::group::Install npm dependencies"
-        mise run install-npm
+        echo "::group::Install pnpm dependencies"
+        mise run install-pnpm
         echo "::endgroup::"

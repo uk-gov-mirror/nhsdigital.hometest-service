@@ -338,6 +338,20 @@ describe("CheckYourAnswersPage", () => {
   });
 
   describe("Submit Order", () => {
+    it("does not reset when loaded via browser back without a submitted order", () => {
+      mockNavigationType = "POP";
+
+      render(<CheckYourAnswersPage />, { wrapper: TestWrapper });
+
+      expect(
+        screen.getByRole("heading", {
+          name: /check your answers/i,
+        }),
+      ).toBeInTheDocument();
+      expect(mockClearAddresses).not.toHaveBeenCalled();
+      expect(mockResetNavigation).not.toHaveBeenCalled();
+    });
+
     it("clears state and redirects to start when revisited via browser back after submission", async () => {
       mockNavigationType = "POP";
 
@@ -360,11 +374,13 @@ describe("CheckYourAnswersPage", () => {
       );
 
       await waitFor(() => {
-        expect(mockClearAddresses).toHaveBeenCalled();
-        expect(mockResetNavigation).toHaveBeenCalledWith(RoutePath.BeforeYouStartPage, {
-          replace: true,
-        });
         expect(screen.getByTestId("order-reference")).toHaveTextContent("");
+      });
+
+      expect(mockClearAddresses).toHaveBeenCalledTimes(1);
+      expect(mockResetNavigation).toHaveBeenCalledTimes(1);
+      expect(mockResetNavigation).toHaveBeenCalledWith(RoutePath.BeforeYouStartPage, {
+        replace: true,
       });
     });
 
@@ -428,6 +444,32 @@ describe("CheckYourAnswersPage", () => {
         expect(mockSubmitOrder).toHaveBeenCalled();
         expect(screen.getByTestId("order-reference")).toHaveTextContent("123");
       });
+    });
+
+    it("navigates to order-submitted when submission succeeds after a page refresh (POP navigation type)", async () => {
+      mockNavigationType = "POP";
+      mockSubmitOrder.mockResolvedValueOnce({
+        orderReference: 456,
+        orderUid: "test-uid",
+        message: "Order submitted successfully",
+      });
+
+      render(<CheckYourAnswersPage />, { wrapper: TestWrapper });
+
+      fireEvent.click(screen.getByRole("checkbox"));
+      submitForm();
+
+      await waitFor(() => {
+        expect(mockGoToStep).toHaveBeenCalledWith("order-submitted");
+        expect(
+          screen.getByRole("heading", {
+            name: /check your answers/i,
+          }),
+        ).toBeInTheDocument();
+      });
+
+      expect(mockResetNavigation).not.toHaveBeenCalled();
+      expect(mockClearAddresses).not.toHaveBeenCalled();
     });
 
     it("shows the error boundary when submitOrder rejects", async () => {

@@ -169,6 +169,10 @@ export const lambdaHandler = async (
       ResultStatus.Result_Available,
       correlationId,
     );
+    console.info(name, "Successfully updated order status and result status", {
+      orderUid,
+      correlationId,
+    });
   } catch (error) {
     console.error(name, "Failed to update result status in database", {
       error,

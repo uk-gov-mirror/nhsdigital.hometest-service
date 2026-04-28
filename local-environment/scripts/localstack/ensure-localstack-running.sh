@@ -8,6 +8,6 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 if ! docker ps --format '{{.Names}}' | grep -qx 'localstack-main'; then
-	echo "LocalStack is not running. Start the backend first with 'npm run local:backend:start', or run 'npm run local:start'."
+	echo "LocalStack is not running. Start the backend first with 'pnpm run local:backend:start', or run 'pnpm run local:start'."
 	exit 1
 fi

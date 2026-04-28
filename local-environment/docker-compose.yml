@@ -27,7 +27,7 @@ services:
       - ui_node_modules:/app/node_modules
     env_file:
       - ../ui/.env.local
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm run dev"
     ports:
       - "3000:3000"
     environment:

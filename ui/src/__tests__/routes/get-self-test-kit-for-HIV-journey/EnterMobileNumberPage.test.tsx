@@ -5,6 +5,23 @@ import { MemoryRouter } from "react-router-dom";
 import EnterMobileNumberPage from "@/routes/get-self-test-kit-for-HIV-journey/EnterMobileNumberPage";
 import { CreateOrderProvider, JourneyNavigationProvider, useCreateOrderContext } from "@/state";
 
+interface SeedSupplierProps {
+  children: React.ReactNode;
+  supplierName: string;
+}
+
+const SeedSupplier = ({ children, supplierName }: SeedSupplierProps) => {
+  const { updateOrderAnswers } = useCreateOrderContext();
+
+  React.useEffect(() => {
+    updateOrderAnswers({
+      supplier: [{ id: "supplier-1", name: supplierName, testCode: "HIV-001" }],
+    });
+  }, [supplierName, updateOrderAnswers]);
+
+  return <>{children}</>;
+};
+
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/enter-mobile-phone-number"]}>
     <JourneyNavigationProvider>
@@ -400,29 +417,15 @@ describe("EnterMobileNumberPage", () => {
 
   describe("Supplier Name Substitution in Hint", () => {
     const createWrapperWithSupplier = (supplierName: string) => {
-      const WrapperWithSupplier = ({ children }: { children: React.ReactNode }) => {
-        const SeedSupplier = () => {
-          const { updateOrderAnswers } = useCreateOrderContext();
-
-          React.useEffect(() => {
-            updateOrderAnswers({
-              supplier: [{ id: "supplier-1", name: supplierName, testCode: "HIV-001" }],
-            });
-          }, [supplierName, updateOrderAnswers]);
-
-          return <>{children}</>;
-        };
-
-        return (
-          <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/enter-mobile-phone-number"]}>
-            <JourneyNavigationProvider>
-              <CreateOrderProvider>
-                <SeedSupplier />
-              </CreateOrderProvider>
-            </JourneyNavigationProvider>
-          </MemoryRouter>
-        );
-      };
+      const WrapperWithSupplier = ({ children }: { children: React.ReactNode }) => (
+        <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/enter-mobile-phone-number"]}>
+          <JourneyNavigationProvider>
+            <CreateOrderProvider>
+              <SeedSupplier supplierName={supplierName}>{children}</SeedSupplier>
+            </CreateOrderProvider>
+          </JourneyNavigationProvider>
+        </MemoryRouter>
+      );
 
       return WrapperWithSupplier;
     };

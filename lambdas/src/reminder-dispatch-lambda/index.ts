@@ -25,7 +25,12 @@ export const lambdaHandler = async (
   event: EventBridgeEvent<"ReminderDispatchEvent", unknown>,
   _context: Context,
 ): Promise<void> => {
-  const { reminderProcessor, getScheduledRemindersQuery, reminderDispatchConfig } = init();
+  const {
+    reminderProcessor,
+    getScheduledRemindersQuery,
+    cancelStaleRemindersCommand,
+    reminderDispatchConfig,
+  } = init();
   const { enabledReminderStatuses, reminderConfiguration } = reminderDispatchConfig;
 
   const correlationId = event.id;
@@ -37,7 +42,8 @@ export const lambdaHandler = async (
       detailType: event["detail-type"],
     });
 
-    // cleanup stale rows HOTE-1136
+    const { cancelledCount } = await cancelStaleRemindersCommand.execute();
+    console.info(name, "Stale reminders cancelled", { correlationId, cancelledCount });
 
     const schedules = buildSchedules(reminderConfiguration);
     const reminders = await getScheduledRemindersQuery.execute(schedules);

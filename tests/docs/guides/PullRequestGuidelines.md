@@ -63,30 +63,30 @@ Before every commit, ensure your code compiles:
 
 ```bash
 # In the root directory
-npm run build
+pnpm run build
 
 # Or check TypeScript compilation
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 
 # For tests directory
 cd tests
-npm run build
+pnpm run build
 # or
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 ```
 
 **For Lambda functions:**
 
 ```bash
 cd lambdas
-npm run build
+pnpm run build
 ```
 
 **For UI:**
 
 ```bash
 cd ui
-npm run build
+pnpm run build
 ```
 
 #### Fixing Compilation Errors
@@ -101,7 +101,7 @@ If you see compilation errors:
 **Example of compilation error:**
 
 ```bash
-$ npm run build
+$ pnpm run build
 
 src/test.ts:10:5 - error TS2322: Type 'string' is not assignable to type 'number'.
 
@@ -114,7 +114,7 @@ Found 1 error in src/test.ts:10
 **Fix it, then verify:**
 
 ```bash
-$ npm run build
+$ pnpm run build
 ✓ Build completed successfully
 ```
 
@@ -368,11 +368,15 @@ Always remove unused code before submitting a PR:
 ❌ **Bad** - Unused imports and variables:
 
 ```typescript
-import { Page, Locator, BrowserContext, expect } from '@playwright/test'; // BrowserContext unused
-import { config } from '../configuration';
-import { OldPage } from './OldPage'; // Not used
+import { BrowserContext, Locator, Page, expect } from "@playwright/test";
 
-const UNUSED_CONSTANT = 'test'; // Never used
+// BrowserContext unused
+import { config } from "../configuration";
+import { OldPage } from "./OldPage";
+
+// Not used
+
+const UNUSED_CONSTANT = "test"; // Never used
 
 export class MyPage {
   readonly page: Page;
@@ -385,8 +389,9 @@ export class MyPage {
 ✅ **Good** - Only what's needed:
 
 ```typescript
-import { Page, Locator } from '@playwright/test';
-import { config } from '../configuration';
+import { Locator, Page } from "@playwright/test";
+
+import { config } from "../configuration";
 
 export class MyPage {
   readonly page: Page;
@@ -404,8 +409,9 @@ Always declare locators as `readonly` properties and initialize them in the cons
 ✅ **Correct Pattern**:
 
 ```typescript
-import { Page, Locator } from '@playwright/test';
-import { config, EnvironmentVariables } from '../configuration';
+import { Locator, Page } from "@playwright/test";
+
+import { EnvironmentVariables, config } from "../configuration";
 
 export class LoginPage {
   readonly page: Page;
@@ -418,9 +424,9 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.getByRole('textbox', { name: 'Username' });
-    this.passwordInput = page.getByRole('textbox', { name: 'Password' });
-    this.loginButton = page.getByRole('button', { name: 'Log in' });
+    this.usernameInput = page.getByRole("textbox", { name: "Username" });
+    this.passwordInput = page.getByRole("textbox", { name: "Password" });
+    this.loginButton = page.getByRole("button", { name: "Log in" });
     this.errorMessage = page.locator('[data-testid="error-message"]');
   }
 
@@ -446,9 +452,9 @@ export class LoginPage {
 export class LoginPage {
   async login(username: string, password: string): Promise<void> {
     // BAD: Inline locators are harder to maintain
-    await this.page.getByRole('textbox', { name: 'Username' }).fill(username);
-    await this.page.getByRole('textbox', { name: 'Password' }).fill(password);
-    await this.page.getByRole('button', { name: 'Log in' }).click();
+    await this.page.getByRole("textbox", { name: "Username" }).fill(username);
+    await this.page.getByRole("textbox", { name: "Password" }).fill(password);
+    await this.page.getByRole("button", { name: "Log in" }).click();
   }
 }
 ```
@@ -466,7 +472,7 @@ export class DashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.welcomeMessage = page.locator('h1');
+    this.welcomeMessage = page.locator("h1");
   }
 
   async verifyWelcomeMessage(expectedText: string): Promise<void> {
@@ -485,11 +491,11 @@ export class DashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.welcomeMessage = page.locator('h1');
+    this.welcomeMessage = page.locator("h1");
   }
 
   async getWelcomeMessage(): Promise<string> {
-    return await this.welcomeMessage.textContent() || '';
+    return (await this.welcomeMessage.textContent()) || "";
   }
 
   // Or simply expose the locator for the test to assert
@@ -506,28 +512,32 @@ All assertions should be in the test specification files, not in page objects.
 ✅ **Good Pattern**:
 
 ```typescript
-import { test, expect } from '../fixtures';
+import { expect, test } from "../fixtures";
 
-test.describe('Login Flow', () => {
-  test('should successfully log in with valid credentials', async ({ page, loginPage, dashboardPage }) => {
+test.describe("Login Flow", () => {
+  test("should successfully log in with valid credentials", async ({
+    page,
+    loginPage,
+    dashboardPage,
+  }) => {
     // Navigate to login page
     await loginPage.navigate();
 
     // Perform login
-    await loginPage.login('testuser', 'password123');
+    await loginPage.login("testuser", "password123");
 
     // ASSERTIONS IN TEST, NOT PAGE OBJECT
-    await expect(dashboardPage.welcomeMessage).toHaveText('Welcome, testuser');
+    await expect(dashboardPage.welcomeMessage).toHaveText("Welcome, testuser");
     await expect(page).toHaveURL(/.*dashboard/);
   });
 
-  test('should show error with invalid credentials', async ({ loginPage }) => {
+  test("should show error with invalid credentials", async ({ loginPage }) => {
     await loginPage.navigate();
-    await loginPage.login('invalid', 'wrong');
+    await loginPage.login("invalid", "wrong");
 
     // ASSERTION IN TEST
     await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toHaveText('Invalid username or password');
+    await expect(loginPage.errorMessage).toHaveText("Invalid username or password");
   });
 });
 ```
@@ -541,13 +551,13 @@ Always import page objects, accessibility module, and configuration through fixt
 ✅ **Correct** - Using fixtures:
 
 ```typescript
-import { test, expect } from '../fixtures';
+import { expect, test } from "../fixtures";
 
-test('homepage accessibility', async ({ page, homePage, accessibility }) => {
+test("homepage accessibility", async ({ page, homePage, accessibility }) => {
   // homePage, accessibility are provided by fixtures
   await homePage.navigate();
 
-  const hasViolations = await accessibility.runAccessibilityCheck(page, 'homepage');
+  const hasViolations = await accessibility.runAccessibilityCheck(page, "homepage");
   expect(hasViolations).toBe(false);
 });
 ```
@@ -555,11 +565,15 @@ test('homepage accessibility', async ({ page, homePage, accessibility }) => {
 ❌ **Incorrect** - Direct imports:
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { HomePage } from '../page-objects/HomePage'; // Don't do this
-import { AccessibilityModule } from '../utils'; // Don't do this
+import { expect, test } from "@playwright/test";
 
-test('homepage test', async ({ page }) => {
+import { HomePage } from "../page-objects/HomePage";
+// Don't do this
+import { AccessibilityModule } from "../utils";
+
+// Don't do this
+
+test("homepage test", async ({ page }) => {
   const homePage = new HomePage(page); // Don't instantiate manually
   // ...
 });
@@ -571,9 +585,10 @@ Reference the fixtures file to understand what's available:
 
 ```typescript
 // tests/fixtures/index.ts
-import { test as base } from '@playwright/test';
-import { PlaywrightDevPage, WPHomePage, HomeStartTestPage } from '../page-objects';
-import { AccessibilityModule } from '../utils';
+import { test as base } from "@playwright/test";
+
+import { HomeStartTestPage, PlaywrightDevPage, WPHomePage } from "../page-objects";
+import { AccessibilityModule } from "../utils";
 
 type MyFixtures = {
   playwrightDevPage: PlaywrightDevPage;
@@ -597,14 +612,14 @@ export const test = base.extend<MyFixtures>({
   },
 });
 
-export { expect } from '@playwright/test';
+export { expect } from "@playwright/test";
 ```
 
 ## Summary Checklist
 
 When creating a PR, verify:
 
-- [ ] **Code compiles without any errors** (`npm run build` succeeds)
+- [ ] **Code compiles without any errors** (`pnpm run build` succeeds)
 - [ ] **Run branch checks** before opening PR (English usage, markdown format, file format)
 - [ ] Using the same PR process as all team members
 - [ ] Ready to respond to each commit during review

@@ -1,5 +1,5 @@
-import { ValidationResult, errorResult, successResult } from "../../lib/utils/validation-result";
 import { generateReadableError } from "../../lib/utils/validation-utils";
+import { ValidationResult, errorResult, successResult } from "../../lib/validation";
 import { OrderStatusFHIRTask, orderStatusFHIRTaskSchema } from "../models/schemas";
 
 const name = "order-status-lambda";

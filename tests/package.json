@@ -41,14 +41,12 @@
     "typescript-eslint": "8.58.1"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "3.787.0",
+    "@aws-sdk/client-lambda": "3.1036.0",
     "@axe-core/playwright": "4.11.1",
+    "axe-core": "4.11.3",
     "axe-html-reporter": "2.2.11",
     "pg": "8.20.0",
     "uuid": "13.0.0",
     "tsx": "4.21.0"
-  },
-  "overrides": {
-    "fast-xml-parser": "4.5.5"
   }
 }

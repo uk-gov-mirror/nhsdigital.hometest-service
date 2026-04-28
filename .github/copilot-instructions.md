@@ -4,7 +4,7 @@
 
 <!-- vale Vale.Terms = NO -->
 
-`hometest-service` is an NHS England service that allows patients to order self-test HIV kits at home. It is a TypeScript monorepo with four independent packages. Each has its own `package.json` and is installed separately via `npm --prefix` — this is **not** an npm workspaces setup.
+`hometest-service` is an NHS England service that allows patients to order self-test HIV kits at home. It is a TypeScript monorepo with four independent packages. Each has its own `package.json` and is installed separately via `pnpm -C` — this is **not** a pnpm workspaces setup.
 
 <!-- vale Vale.Terms = YES -->
 
@@ -109,40 +109,40 @@ local-environment/  Docker Compose + LocalStack + Terraform for local dev
 
 ```bash
 # Install all workspace dependencies (also installs ui/, lambdas/, tests/ via postinstall)
-npm ci
+pnpm install
 
 # Build and package lambdas (required before first start or after lambda changes)
-npm run build:lambdas
-npm run package:lambdas
+pnpm run build:lambdas
+pnpm run package:lambdas
 
 # Start the full local environment (Docker + LocalStack + Terraform deploy + UI)
-npm start
+pnpm start
 
 # Stop the local environment and destroy Terraform state
-npm run stop
+pnpm run stop
 
 # Restart the local environment
-npm run local:restart
+pnpm run local:restart
 
 # Start only the backend (Docker + DB migration)
-npm run local:backend:start
+pnpm run local:backend:start
 
 # Start only the frontend (Docker UI container)
-npm run local:frontend:start
+pnpm run local:frontend:start
 
 # Run all unit tests (ui + lambdas)
-npm test
+pnpm test
 
 # Run a single test file (always use this exact form — quote the path and pass --no-coverage)
 npx jest "src/lib/auth/session-token-service" --no-coverage
 
 # Run Playwright tests (reads URLs from Terraform outputs)
-npm run test:playwright
+pnpm run test:playwright
 
 # Individual service controls
-npm run local:service:db:start       # start Postgres only
-npm run local:service:db:migrate     # run DB migrations
-npm run local:service:localstack:start  # start LocalStack only
+pnpm run local:service:db:start       # start Postgres only
+pnpm run local:service:db:migrate     # run DB migrations
+pnpm run local:service:localstack:start  # start LocalStack only
 ```
 
 ## Review Philosophy

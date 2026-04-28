@@ -28,7 +28,7 @@ The mock mappings are located in the [`mappings`](./mappings) directory.
 The WireMock service is started automatically when you run:
 
 ```shell
-npm start
+pnpm start
 ```
 
 This command starts the WireMock container along with the rest of the local environment. The service is available at [http://localhost:8080](http://localhost:8080).

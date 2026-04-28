@@ -8,6 +8,7 @@ import { AwsSecretsClient } from "../lib/secrets/secrets-manager-client";
 import { AWSSQSClient } from "../lib/sqs/sqs-client";
 import { testComponentCreationOrder } from "../lib/test-utils/component-integration-helpers";
 import { restoreEnvironment, setupEnvironment } from "../lib/test-utils/environment-test-helpers";
+import { CancelStaleRemindersCommand } from "./db/commands/cancel-stale-reminders";
 import { MarkReminderAsFailedCommand } from "./db/commands/mark-reminder-as-failed";
 import { MarkReminderAsQueuedCommand } from "./db/commands/mark-reminder-as-queued";
 import { ScheduleReminderCommand } from "./db/commands/schedule-reminder";
@@ -18,6 +19,7 @@ import { ReminderNotifyService } from "./notify/reminder-notify-service";
 import { ReminderProcessor } from "./processor/reminder-processor";
 
 jest.mock("../lib/db/order-status-db");
+jest.mock("./db/commands/cancel-stale-reminders");
 jest.mock("./db/queries/get-scheduled-reminders");
 jest.mock("./db/commands/mark-reminder-as-queued");
 jest.mock("./db/commands/mark-reminder-as-failed");
@@ -77,6 +79,7 @@ describe("init", () => {
       expect(result).toEqual({
         reminderProcessor: expect.any(ReminderProcessor),
         getScheduledRemindersQuery: expect.any(GetScheduledRemindersQuery),
+        cancelStaleRemindersCommand: expect.any(CancelStaleRemindersCommand),
         reminderDispatchConfig: expect.objectContaining({
           enabledReminderStatuses: expect.any(Set),
           reminderConfiguration: expect.any(Object),

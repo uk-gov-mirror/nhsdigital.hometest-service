@@ -205,7 +205,7 @@ export class SessionTokenVerifier implements ISessionTokenVerifier {
     }
 
     if (error instanceof JsonWebTokenError) {
-      const errorCode = this.mapJsonWebTokenErrorCode(error.message);
+      const errorCode = this.mapJsonWebTokenErrorCode((error as JsonWebTokenError).message);
 
       return {
         code: errorCode,
