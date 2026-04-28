@@ -117,9 +117,10 @@ export async function validateDBData(
     observation,
   ) as InterpretationCode;
   const { orderUid, patientId, supplierId, correlationId } = identifiers;
+  const logContext = { orderUid, correlationId };
 
   if (!testOrderResult) {
-    console.error(name, "Test order not found for orderUid", { orderUid });
+    console.error(name, "Test order not found for orderUid", logContext);
     return errorResult({
       errorCode: 404,
       errorType: "not-found",
@@ -134,7 +135,7 @@ export async function validateDBData(
       console.error(
         name,
         "Idempotency check failed, different result detected on same correlation ID.",
-        { orderUid, correlationId },
+        logContext,
       );
       return errorResult({
         errorCode: 409,
@@ -148,7 +149,7 @@ export async function validateDBData(
     console.info(
       name,
       "Duplicate submission with same correlation ID detected, returning success without reprocessing",
-      { orderUid, correlationId },
+      logContext,
     );
     return successResult({
       isIdempotent: true,
@@ -156,7 +157,7 @@ export async function validateDBData(
   }
 
   if (testOrderResult.order_status_code === OrderStatus.Complete) {
-    console.error(name, "Order is already complete, rejecting result", { orderUid, correlationId });
+    console.error(name, "Order is already complete, rejecting result", logContext);
     return errorResult({
       errorCode: 409,
       errorType: "conflict",
@@ -167,7 +168,7 @@ export async function validateDBData(
 
   if (testOrderResult.patient_uid !== patientId) {
     console.error(name, "Patient ID in Observation does not match test order record", {
-      orderUid,
+      ...logContext,
       patientId,
     });
     return invalidErrorResult("Patient ID in Observation does not match order record");
@@ -175,7 +176,7 @@ export async function validateDBData(
 
   if (testOrderResult.supplier_id !== supplierId) {
     console.error(name, "Supplier ID in Observation does not match test order record", {
-      orderUid,
+      ...logContext,
       supplierId,
     });
     return errorResult({
