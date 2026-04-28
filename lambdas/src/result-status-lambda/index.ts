@@ -12,7 +12,6 @@ import { type FHIRTask } from "../lib/models/fhir/fhir-service-request-type";
 import { OrderStatus, ResultStatus } from "../lib/types/status";
 import { getCorrelationIdFromEventHeaders, isUUID } from "../lib/utils/utils";
 import { generateReadableError } from "../lib/utils/validation-utils";
-import { corsOptions } from "./cors-configuration";
 import { init } from "./init";
 import { resultStatusFHIRTaskSchema } from "./schemas";
 
@@ -203,5 +202,4 @@ export const lambdaHandler = async (
 
 export const handler = middy(lambdaHandler)
   .use(httpSecurityHeaders(securityHeaders))
-  .use(cors(corsOptions))
   .use(httpErrorHandler());

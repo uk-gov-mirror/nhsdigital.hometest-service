@@ -2,7 +2,6 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 
 import { createFhirErrorResponse, createFhirResponse } from "../lib/fhir-response";
 import { lambdaHandler as handler } from "./index";
-import { InterpretationCode } from "./models";
 
 jest.mock("./init", () => {
   const initMock = {
@@ -24,16 +23,13 @@ jest.mock("./init", () => {
   };
 });
 
-jest.mock("./validation-service", () => {
+jest.mock("./services/validation-service", () => {
   const extractAndValidateObservationFieldsMock = jest.fn();
-  const extractInterpretationCodeFromFHIRObservationMock = jest.fn();
   const validateDBDataMock = jest.fn();
   return {
     extractAndValidateObservationFields: extractAndValidateObservationFieldsMock,
-    extractInterpretationCodeFromFHIRObservation: extractInterpretationCodeFromFHIRObservationMock,
     validateDBData: validateDBDataMock,
     extractAndValidateObservationFieldsMock,
-    extractInterpretationCodeFromFHIRObservationMock,
     validateDBDataMock,
   };
 });
@@ -78,14 +74,11 @@ const { initMock } = jest.requireMock("./init") as {
   };
 };
 
-const {
-  extractAndValidateObservationFieldsMock,
-  validateDBDataMock,
-  extractInterpretationCodeFromFHIRObservationMock,
-} = jest.requireMock("./validation-service") as {
+const { extractAndValidateObservationFieldsMock, validateDBDataMock } = jest.requireMock(
+  "./services/validation-service",
+) as {
   extractAndValidateObservationFieldsMock: jest.Mock;
   validateDBDataMock: jest.Mock;
-  extractInterpretationCodeFromFHIRObservationMock: jest.Mock;
 };
 
 describe("order-result-lambda handler", () => {
@@ -122,7 +115,6 @@ describe("order-result-lambda handler", () => {
     });
     initMock.orderService.retrieveOrderDetails.mockResolvedValue({ patient_uid: "patient-uid-1" });
     validateDBDataMock.mockResolvedValue({ success: true, data: { isIdempotent: false } });
-    extractInterpretationCodeFromFHIRObservationMock.mockReturnValue(InterpretationCode.Normal);
     initMock.orderService.updateOrderStatusAndResultStatus.mockResolvedValue(undefined);
     initMock.resultProcessingService.processValidatedResult.mockResolvedValue(undefined);
   });

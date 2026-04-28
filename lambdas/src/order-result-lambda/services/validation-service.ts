@@ -1,27 +1,27 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Observation } from "fhir/r4";
 
-import { OrderResultSummary } from "../lib/db/order-db";
+import { OrderResultSummary } from "../../lib/db/order-db";
 import {
   extractInterpretationCodeFromFHIRObservation,
   extractOrderUidFromFHIRObservation,
   extractPatientIdFromFHIRObservation,
   extractSupplierIdFromFHIRObservation,
-} from "../lib/fhir-observation-extractors";
-import { getCorrelationIdFromEventHeaders } from "../lib/utils/utils";
-import { generateReadableError } from "../lib/utils/validation-utils";
+} from "../../lib/fhir-observation-extractors";
+import { getCorrelationIdFromEventHeaders } from "../../lib/utils/utils";
+import { generateReadableError } from "../../lib/utils/validation-utils";
 import {
   ValidationResult,
   ValidationResultError,
   errorResult,
   successResult,
-} from "../lib/validation";
+} from "../../lib/validation";
 import {
   Identifiers,
   InterpretationCode,
   orderResultFHIRObservationSchema,
   resultCodeMapping,
-} from "./models";
+} from "../models";
 
 const name = "order-result-lambda";
 
@@ -177,10 +177,3 @@ export async function validateDBData(
 
   return successResult({ isIdempotent: false });
 }
-
-export {
-  extractOrderUidFromFHIRObservation,
-  extractPatientIdFromFHIRObservation,
-  extractSupplierIdFromFHIRObservation,
-  extractInterpretationCodeFromFHIRObservation,
-} from "../lib/fhir-observation-extractors";

@@ -9,7 +9,7 @@ import { createFhirErrorResponse, createFhirResponse } from "../lib/fhir-respons
 import { securityHeaders } from "../lib/http/security-headers";
 import { corsOptions } from "./cors-configuration";
 import { init } from "./init";
-import { extractAndValidateObservationFields, validateDBData } from "./validation-service";
+import { extractAndValidateObservationFields, validateDBData } from "./services/validation-service";
 
 const name = "order-result-lambda";
 

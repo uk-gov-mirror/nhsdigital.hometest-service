@@ -1,13 +1,16 @@
+import { LambdaClient } from "@aws-sdk/client-lambda";
+
+import { getAwsClientOptions } from "../lib/aws/aws-client-config";
 import { PostgresDbClient } from "../lib/db/db-client";
 import { postgresConfigFromEnv } from "../lib/db/db-config";
 import { OrderService } from "../lib/db/order-db";
-import { AWSLambdaClient } from "../lib/lambda/lambda-client";
+import { LambdaHttpClient } from "../lib/http/lambda-http-client";
 import { AwsSecretsClient } from "../lib/secrets/secrets-manager-client";
 import { retrieveMandatoryEnvVariable } from "../lib/utils/utils";
 import {
   ResultProcessingHandoffService,
   ResultProcessingService,
-} from "./result-processing-service";
+} from "./services/result-processing-service";
 
 export interface Environment {
   orderService: OrderService;
@@ -23,11 +26,9 @@ export function buildEnvironment(): Environment {
   const secretsClient = new AwsSecretsClient(awsRegion);
   const dbClient = new PostgresDbClient(postgresConfigFromEnv(secretsClient));
   const orderService = new OrderService(dbClient);
-  const lambdaClient = new AWSLambdaClient(awsRegion);
-  const resultProcessingService = new ResultProcessingHandoffService({
-    lambdaClient,
-    resultProcessingFunctionName,
-  });
+  const lambdaClient = new LambdaClient(getAwsClientOptions(awsRegion));
+  const httpClient = new LambdaHttpClient(lambdaClient, resultProcessingFunctionName);
+  const resultProcessingService = new ResultProcessingHandoffService(httpClient);
 
   return {
     orderService,

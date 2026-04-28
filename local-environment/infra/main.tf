@@ -181,8 +181,8 @@ resource "aws_iam_role_policy" "lambdas_sqs_publish" {
   })
 }
 
-resource "aws_iam_role_policy" "lambdas_invoke_result_processor" {
-  name = "${var.project_name}-lambdas-invoke-result-processor"
+resource "aws_iam_role_policy" "order_result_invoke_hiv_processor" {
+  name = "${var.project_name}-order-result-invoke-hiv-processor"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
@@ -193,14 +193,14 @@ resource "aws_iam_role_policy" "lambdas_invoke_result_processor" {
         Action = [
           "lambda:InvokeFunction"
         ]
-        Resource = module.hiv_results_lambda.lambda_function_arn
+        Resource = aws_lambda_function.hiv_results_lambda.arn
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy" "lambdas_lambda_invoke" {
-  name = "${var.project_name}-lambdas-lambda-invoke"
+resource "aws_iam_role_policy" "hiv_processor_invoke_result_status" {
+  name = "${var.project_name}-hiv-processor-invoke-result-status"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
@@ -211,9 +211,7 @@ resource "aws_iam_role_policy" "lambdas_lambda_invoke" {
         Action = [
           "lambda:InvokeFunction"
         ]
-        Resource = [
-          module.result_status_lambda.lambda_function.arn,
-        ]
+        Resource = aws_lambda_function.result_status_lambda.arn
       }
     ]
   })
@@ -443,8 +441,6 @@ module "order_result_lambda" {
     DB_SECRET_NAME                  = "postgres-db-password"
     DB_SSL                          = "false"
     RESULT_PROCESSING_FUNCTION_NAME = module.hiv_results_lambda.function_name
-    NOTIFY_MESSAGES_QUEUE_URL       = aws_sqs_queue.notify_messages.url
-    HOME_TEST_BASE_URL              = "http://localhost:3000"
   }
 }
 
@@ -559,7 +555,7 @@ resource "aws_lambda_function" "hiv_results_lambda" {
   environment {
     variables = {
       NODE_OPTIONS              = "--enable-source-maps"
-      RESULT_STATUS_LAMBDA_NAME = module.result_status_lambda.lambda_function.function_name
+      RESULT_STATUS_LAMBDA_NAME = aws_lambda_function.result_status_lambda.function_name
       AWS_REGION                = "eu-west-2"
     }
   }
@@ -597,32 +593,30 @@ module "order_status_lambda" {
   }
 }
 
-module "result_status_lambda" {
-  source = "./modules/lambda"
+resource "aws_lambda_function" "result_status_lambda" {
+  filename         = "${path.module}/../../lambdas/dist/result-status-lambda.zip"
+  function_name    = "${var.project_name}-result-status"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "index.handler"
+  runtime          = "nodejs24.x"
+  source_code_hash = filebase64sha256("${path.module}/../../lambdas/dist/result-status-lambda.zip")
 
-  project_name                  = var.project_name
-  function_name                 = "result-status"
-  zip_path                      = "${path.module}/../../lambdas/dist/result-status-lambda.zip"
-  lambda_role_arn               = aws_iam_role.lambda_role.arn
-  environment                   = var.environment
-  api_gateway_id                = aws_api_gateway_rest_api.api.id
-  api_gateway_root_resource_id  = aws_api_gateway_rest_api.api.root_resource_id
-  api_gateway_execution_arn     = aws_api_gateway_rest_api.api.execution_arn
-  api_path                      = "result/status"
-  http_method                   = "POST"
-  lambda_role_policy_attachment = aws_iam_role_policy_attachment.lambda_basic
-
-  environment_variables = {
-    NODE_OPTIONS   = "--enable-source-maps"
-    ALLOW_ORIGIN   = "http://localhost:3000"
-    DB_USERNAME    = "app_user"
-    DB_ADDRESS     = "postgres-db"
-    DB_PORT        = "5432"
-    DB_NAME        = "local_hometest_db"
-    DB_SCHEMA      = "hometest"
-    DB_SECRET_NAME = "postgres-db-password"
-    DB_SSL         = "false"
+  environment {
+    variables = {
+      NODE_OPTIONS              = "--enable-source-maps"
+      DB_USERNAME               = "app_user"
+      DB_ADDRESS                = "postgres-db"
+      DB_PORT                   = "5432"
+      DB_NAME                   = "local_hometest_db"
+      DB_SCHEMA                 = "hometest"
+      DB_SECRET_NAME            = "postgres-db-password"
+      DB_SSL                    = "false"
+      NOTIFY_MESSAGES_QUEUE_URL = aws_sqs_queue.notify_messages.url
+      HOME_TEST_BASE_URL        = "http://localhost:3000"
+    }
   }
+
+  depends_on = [aws_iam_role_policy_attachment.lambda_basic]
 }
 
 resource "aws_lambda_function" "reminder_dispatch_lambda" {
@@ -696,7 +690,6 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     module.session_lambda,
     module.order_status_lambda,
     module.postcode_lookup_lambda,
-    module.result_status_lambda
   ]
 
   triggers = {
@@ -710,7 +703,6 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       module.session_lambda,
       module.order_status_lambda,
       module.postcode_lookup_lambda,
-      module.result_status_lambda
     ]))
   }
 

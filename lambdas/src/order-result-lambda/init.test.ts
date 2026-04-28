@@ -1,18 +1,21 @@
+import { LambdaClient } from "@aws-sdk/client-lambda";
+
 import { PostgresDbClient } from "../lib/db/db-client";
 import { postgresConfigFromEnv } from "../lib/db/db-config";
 import { OrderService } from "../lib/db/order-db";
-import { AWSLambdaClient } from "../lib/lambda/lambda-client";
+import { LambdaHttpClient } from "../lib/http/lambda-http-client";
 import { AwsSecretsClient } from "../lib/secrets/secrets-manager-client";
 import { buildEnvironment as init } from "./init";
-import { ResultProcessingHandoffService } from "./result-processing-service";
+import { ResultProcessingHandoffService } from "./services/result-processing-service";
 
+jest.mock("@aws-sdk/client-lambda");
 jest.mock("../lib/db/db-client");
 jest.mock("../lib/db/db-config");
 jest.mock("../lib/commons");
 jest.mock("../lib/secrets/secrets-manager-client");
 jest.mock("../lib/sqs/sqs-client");
 jest.mock("../lib/notify/services/order-status-notify-service");
-jest.mock("../lib/lambda/lambda-client");
+jest.mock("../lib/http/lambda-http-client");
 
 describe("order-result-lambda init", () => {
   const originalEnv = process.env;
@@ -84,9 +87,19 @@ describe("order-result-lambda init", () => {
     expect(PostgresDbClient).toHaveBeenCalledWith(mockPostgresConfig);
   });
 
-  it("creates a direct lambda client with AWS region", () => {
+  it("creates a LambdaClient with the AWS region", () => {
     init();
-    expect(AWSLambdaClient).toHaveBeenCalledWith("eu-west-2");
+    expect(LambdaClient).toHaveBeenCalledWith(expect.objectContaining({ region: "eu-west-2" }));
+  });
+
+  it("constructs LambdaHttpClient with the LambdaClient instance and RESULT_PROCESSING_FUNCTION_NAME", () => {
+    init();
+
+    const lambdaClientInstance = (LambdaClient as jest.Mock).mock.instances[0];
+    expect(LambdaHttpClient).toHaveBeenCalledWith(
+      lambdaClientInstance,
+      "hometest-service-hiv-results-processor",
+    );
   });
 
   it("returns an Environment object with all required properties", () => {

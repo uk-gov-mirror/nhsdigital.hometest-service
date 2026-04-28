@@ -37,7 +37,7 @@ describe("ResultStatusLambdaService", () => {
     await service.sendResult(taskPayload, correlationId);
 
     expect(mockPost).toHaveBeenCalledWith(
-      "result/status",
+      "result-status-update",
       taskPayload,
       { "X-Correlation-ID": correlationId },
       "application/fhir+json",
@@ -51,7 +51,7 @@ describe("ResultStatusLambdaService", () => {
     await service.sendResult(taskPayload, "");
 
     expect(mockPost).toHaveBeenCalledWith(
-      "result/status",
+      "result-status-update",
       taskPayload,
       { "X-Correlation-ID": "" },
       "application/fhir+json",

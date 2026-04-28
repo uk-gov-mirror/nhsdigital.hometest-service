@@ -7,7 +7,7 @@ export class ResultStatusLambdaService {
 
   async sendResult(result: FHIRTask, correlationId: string): Promise<void> {
     await this.client.post<void>(
-      "result/status",
+      "result-status-update",
       result,
       { "X-Correlation-ID": correlationId },
       "application/fhir+json",
