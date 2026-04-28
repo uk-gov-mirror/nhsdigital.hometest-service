@@ -14,6 +14,12 @@ import { InterpretationCode } from "./models/interpretation";
 
 const name = "hiv-results-processor";
 
+/**
+ * Lambda handler invoked by the order-result lambda.
+ * Accepts FHIR Observation resources, extracts the interpretation code, and forwards a FHIR Task
+ * to the result-status lambda for non-reactive results.
+ * Returns appropriate FHIR responses for success and error cases.
+ */
 export const lambdaHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {

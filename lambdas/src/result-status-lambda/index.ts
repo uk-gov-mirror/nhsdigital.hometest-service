@@ -72,7 +72,7 @@ function extractOrderUidFromFHIRTask(task: FHIRTask): string {
 }
 
 /**
- * Lambda handler for POST /result/status endpoint
+ * Lambda handler invoked by the hiv-result-processor lambda.
  * Accepts FHIR Task resources and updates result status on database after validation and business logic checks.
  * Returns appropriate FHIR responses for success and error cases.
  */

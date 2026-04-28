@@ -28,7 +28,7 @@ describe("order-result-lambda init", () => {
     DB_SCHEMA: "test-schema",
     DB_SECRET_NAME: "test-secret-name",
     AWS_REGION: "eu-west-2",
-    RESULT_PROCESSING_FUNCTION_NAME: "hometest-service-hiv-results-processor",
+    RESULT_PROCESSING_LAMBDA_NAME: "hometest-service-hiv-results-processor",
   };
 
   const mockPostgresConfig = {
@@ -73,11 +73,11 @@ describe("order-result-lambda init", () => {
     expect(() => init()).toThrow("Missing value for an environment variable AWS_REGION");
   });
 
-  it("throws when RESULT_PROCESSING_FUNCTION_NAME is not set", () => {
-    delete process.env.RESULT_PROCESSING_FUNCTION_NAME;
+  it("throws when RESULT_PROCESSING_LAMBDA_NAME is not set", () => {
+    delete process.env.RESULT_PROCESSING_LAMBDA_NAME;
 
     expect(() => init()).toThrow(
-      "Missing value for an environment variable RESULT_PROCESSING_FUNCTION_NAME",
+      "Missing value for an environment variable RESULT_PROCESSING_LAMBDA_NAME",
     );
   });
 
@@ -92,7 +92,7 @@ describe("order-result-lambda init", () => {
     expect(LambdaClient).toHaveBeenCalledWith(expect.objectContaining({ region: "eu-west-2" }));
   });
 
-  it("constructs LambdaHttpClient with the LambdaClient instance and RESULT_PROCESSING_FUNCTION_NAME", () => {
+  it("constructs LambdaHttpClient with the LambdaClient instance and RESULT_PROCESSING_LAMBDA_NAME", () => {
     init();
 
     const lambdaClientInstance = (LambdaClient as jest.Mock).mock.instances[0];

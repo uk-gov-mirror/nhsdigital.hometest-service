@@ -19,15 +19,13 @@ export interface Environment {
 
 export function buildEnvironment(): Environment {
   const awsRegion = retrieveMandatoryEnvVariable("AWS_REGION");
-  const resultProcessingFunctionName = retrieveMandatoryEnvVariable(
-    "RESULT_PROCESSING_FUNCTION_NAME",
-  );
+  const resultProcessingLambdaName = retrieveMandatoryEnvVariable("RESULT_PROCESSING_LAMBDA_NAME");
 
   const secretsClient = new AwsSecretsClient(awsRegion);
   const dbClient = new PostgresDbClient(postgresConfigFromEnv(secretsClient));
   const orderService = new OrderService(dbClient);
   const lambdaClient = new LambdaClient(getAwsClientOptions(awsRegion));
-  const httpClient = new LambdaHttpClient(lambdaClient, resultProcessingFunctionName);
+  const httpClient = new LambdaHttpClient(lambdaClient, resultProcessingLambdaName);
   const resultProcessingService = new ResultProcessingHandoffService(httpClient);
 
   return {

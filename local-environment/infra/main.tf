@@ -431,16 +431,16 @@ module "order_result_lambda" {
   lambda_role_policy_attachment = aws_iam_role_policy_attachment.lambda_basic
 
   environment_variables = {
-    NODE_OPTIONS                    = "--enable-source-maps"
-    ALLOW_ORIGIN                    = "http://localhost:3000"
-    DB_USERNAME                     = "app_user"
-    DB_ADDRESS                      = "postgres-db"
-    DB_PORT                         = "5432"
-    DB_NAME                         = "local_hometest_db"
-    DB_SCHEMA                       = "hometest"
-    DB_SECRET_NAME                  = "postgres-db-password"
-    DB_SSL                          = "false"
-    RESULT_PROCESSING_FUNCTION_NAME = module.hiv_results_lambda.function_name
+    NODE_OPTIONS                  = "--enable-source-maps"
+    ALLOW_ORIGIN                  = "http://localhost:3000"
+    DB_USERNAME                   = "app_user"
+    DB_ADDRESS                    = "postgres-db"
+    DB_PORT                       = "5432"
+    DB_NAME                       = "local_hometest_db"
+    DB_SCHEMA                     = "hometest"
+    DB_SECRET_NAME                = "postgres-db-password"
+    DB_SSL                        = "false"
+    RESULT_PROCESSING_LAMBDA_NAME = module.hiv_results_lambda.function_name
   }
 }
 
