@@ -114,6 +114,19 @@ describe("ContentValidator", () => {
         false,
       );
     });
+
+    it("returns an error when order-submitted page is missing", () => {
+      const pages = buildValidPages();
+      delete pages["order-submitted"];
+
+      const result = validateContent({
+        commonContent: validCommonContent,
+        pages,
+      });
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("pages is missing required key: order-submitted");
+    });
   });
 
   describe("assertValidPrivacyPolicyContent", () => {

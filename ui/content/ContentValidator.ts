@@ -50,9 +50,15 @@ const REQUIRED_PAGE_KEYS: (keyof MainPagesContent)[] = [
   "suppliers-privacy-policy",
 ];
 
+// order-submitted is required to exist in the content but has no top-level title field,
+// so it is kept separate from REQUIRED_PAGE_KEYS to avoid triggering the title assertion.
+const REQUIRED_PAGE_PRESENCE_KEYS: ReadonlyArray<keyof MainPagesContent> = [
+  ...REQUIRED_PAGE_KEYS,
+  "order-submitted",
+];
+
 // All main pages that declare a pageTitle field in their schema interface.
 // Supplier pages are excluded because they derive their title at render time via formatPageTitle.
-// order-submitted is included here but not in REQUIRED_PAGE_KEYS because it has no top-level title field.
 const REQUIRED_PAGE_TITLE_KEYS: ReadonlyArray<keyof MainPagesContent> = [
   ...REQUIRED_PAGE_KEYS.filter(
     (k) => k !== "suppliers-terms-conditions" && k !== "suppliers-privacy-policy",
@@ -98,7 +104,7 @@ const validatePagesContent = (content: unknown, errors: string[]): content is Ma
     return false;
   }
 
-  for (const key of REQUIRED_PAGE_KEYS) {
+  for (const key of REQUIRED_PAGE_PRESENCE_KEYS) {
     if (!(key in content)) {
       errors.push(`pages is missing required key: ${key}`);
     } else if (!isObject(content[key])) {
