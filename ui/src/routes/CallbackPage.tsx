@@ -41,7 +41,25 @@ export default function CallbackPage() {
     const code = params.get("code");
     const stateParam = params.get("state");
 
-    if (!code) return;
+    if (!code) {
+      const error = params.get("error");
+      const errorDescription = params.get("error_description");
+      if (error === "access_denied" && errorDescription === "ConsentNotGiven") {
+        const csrf = consumeLoginCsrf();
+        if (!csrf || !stateParam) {
+          navigate(RoutePath.LoginPage, { replace: true });
+          return;
+        }
+        try {
+          verifyState({ csrf, encoded: stateParam });
+        } catch {
+          navigate(RoutePath.LoginPage, { replace: true });
+          return;
+        }
+        navigate(RoutePath.ConsentDeniedPage, { replace: true });
+      }
+      return;
+    }
 
     let returnTo: string | null = null;
     try {

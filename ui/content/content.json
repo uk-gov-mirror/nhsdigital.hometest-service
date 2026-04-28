@@ -291,6 +291,14 @@
       },
       "radioLegend": "Confirm your mobile phone number"
     },
+    "consent-denied": {
+      "title": "You need to verify your identity to continue",
+      "body": "You cannot use this service unless you agree to share your NHS login information with HomeTest.",
+      "helpText": "If you need medical help, go to",
+      "linkText": "111.nhs.uk",
+      "orCallText": "or call 111 or your GP.",
+      "emergencyText": "Call 999 if it's a life threatening emergency."
+    },
     "service-error": {
       "title": "Sorry, there is a problem with the service",
       "message": "Try again later."

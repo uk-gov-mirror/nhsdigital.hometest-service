@@ -315,6 +315,15 @@ export interface ConfirmMobilePhoneNumberContent {
   radioLegend: string;
 }
 
+export interface ConsentDeniedContent {
+  title: string;
+  body: string;
+  helpText: string;
+  linkText: string;
+  orCallText: string;
+  emergencyText: string;
+}
+
 export interface ServiceErrorContent {
   title: string;
   message: string;
@@ -526,6 +535,7 @@ export interface PagesContent {
   "enter-mobile-phone-number": EnterMobilePhoneNumberContent;
   "check-your-answers": CheckYourAnswersContent;
   "confirm-mobile-phone-number": ConfirmMobilePhoneNumberContent;
+  "consent-denied": ConsentDeniedContent;
   "service-error": ServiceErrorContent;
   "order-tracking": OrderTrackingContent;
   "test-results": TestResultsContent;

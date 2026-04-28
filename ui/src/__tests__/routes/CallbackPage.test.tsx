@@ -79,6 +79,75 @@ describe("CallbackPage", () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it("navigates to ConsentDeniedPage with replace when error=access_denied and error_description=ConsentNotGiven and state is valid", async () => {
+    globalThis.history.replaceState(
+      {},
+      "",
+      "/callback?error=access_denied&error_description=ConsentNotGiven&state=valid-state",
+    );
+    mockedConsumeLoginCsrf.mockReturnValue("csrf-token");
+    mockedVerifyState.mockReturnValue(null);
+
+    await act(async () => {
+      render(<CallbackPage />);
+    });
+
+    expect(mockedVerifyState).toHaveBeenCalledWith({ csrf: "csrf-token", encoded: "valid-state" });
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.ConsentDeniedPage, { replace: true });
+    expect(mockedLoginService.login).not.toHaveBeenCalled();
+    expect(mockSetUser).not.toHaveBeenCalled();
+  });
+
+  it("navigates to LoginPage with replace when consent denied but CSRF is missing from session storage", async () => {
+    globalThis.history.replaceState(
+      {},
+      "",
+      "/callback?error=access_denied&error_description=ConsentNotGiven&state=valid-state",
+    );
+    mockedConsumeLoginCsrf.mockReturnValue(null);
+
+    await act(async () => {
+      render(<CallbackPage />);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.LoginPage, { replace: true });
+    expect(mockedLoginService.login).not.toHaveBeenCalled();
+  });
+
+  it("navigates to LoginPage with replace when consent denied but state verification fails", async () => {
+    globalThis.history.replaceState(
+      {},
+      "",
+      "/callback?error=access_denied&error_description=ConsentNotGiven&state=tampered-state",
+    );
+    mockedConsumeLoginCsrf.mockReturnValue("csrf-token");
+    mockedVerifyState.mockImplementation(() => {
+      throw new Error("Invalid state");
+    });
+
+    await act(async () => {
+      render(<CallbackPage />);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.LoginPage, { replace: true });
+    expect(mockedLoginService.login).not.toHaveBeenCalled();
+  });
+
+  it("does not navigate to ConsentDeniedPage when error=access_denied but error_description differs", async () => {
+    globalThis.history.replaceState(
+      {},
+      "",
+      "/callback?error=access_denied&error_description=SomethingElse",
+    );
+
+    await act(async () => {
+      render(<CallbackPage />);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockedLoginService.login).not.toHaveBeenCalled();
+  });
+
   it("navigates to LoginPage when CSRF is missing from session storage", async () => {
     globalThis.history.replaceState({}, "", "/callback?code=abc123&state=some-state");
     mockedConsumeLoginCsrf.mockReturnValue(null);

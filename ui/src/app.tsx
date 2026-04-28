@@ -6,6 +6,7 @@ import JourneyLayout from "./layouts/JourneyLayout";
 import MainLayout from "./layouts/MainLayout";
 import { JourneyStepNames, RoutePath } from "./lib/models/route-paths";
 import CallbackPage from "./routes/CallbackPage";
+import ConsentDeniedPage from "./routes/ConsentDeniedPage";
 import HomeTestPrivacyPolicyPage from "./routes/HomeTestPrivacyPolicyPage";
 import HomeTestTermsOfUsePage from "./routes/HomeTestTermsOfUsePage";
 import LoginPage from "./routes/LoginPage";
@@ -39,6 +40,14 @@ const router = createBrowserRouter([
     element: (
       <MainLayout>
         <ServiceErrorPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: RoutePath.ConsentDeniedPage,
+    element: (
+      <MainLayout>
+        <ConsentDeniedPage />
       </MainLayout>
     ),
   },
