@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { type ISessionTokenService } from "../lib/auth/session-token-service";
 import { type SessionDbClient } from "../lib/db/session-db-client";
 import { type INhsLoginService, type NhsLoginErrorCode } from "../lib/login/nhs-login-service";
+import { type INhsUserInfoResponseModel } from "../lib/models/nhs-login/nhs-login-user-info-response-model";
 import { ISessionUserInfo, mapNhsUserInfoToSessionUserInfo } from "../lib/models/session/session";
 
 export interface SessionLoginSuccessResult {
@@ -113,11 +114,13 @@ export class SessionLoginService implements ISessionLoginService {
       );
     }
 
-    const userInfo = mapNhsUserInfoToSessionUserInfo(nhsLoginResult.result.userInfo);
-    userInfo.issuer = idTokenIssuer;
-    userInfo.audience = idTokenAudience;
+    const userInfo = this.buildValidatedSessionUserInfo(
+      nhsLoginResult.result.userInfo,
+      idTokenIssuer,
+      idTokenAudience,
+    );
 
-    if (!this.isValidSessionUserInfo(userInfo)) {
+    if (!userInfo) {
       return this.failure(
         "SESSION_DATA_INVALID",
         "NHS user information is missing required session fields",
@@ -182,6 +185,22 @@ export class SessionLoginService implements ISessionLoginService {
     return undefined;
   }
 
+  private buildValidatedSessionUserInfo(
+    nhsUserInfo: INhsUserInfoResponseModel,
+    issuer: string,
+    audience: string,
+  ): ISessionUserInfo | undefined {
+    try {
+      const userInfo = mapNhsUserInfoToSessionUserInfo(nhsUserInfo);
+      userInfo.issuer = issuer;
+      userInfo.audience = audience;
+
+      return this.isValidSessionUserInfo(userInfo) ? userInfo : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   private isValidSessionUserInfo(userInfo: ISessionUserInfo): boolean {
     return (
       this.hasValue(userInfo.issuer) &&
@@ -194,12 +213,13 @@ export class SessionLoginService implements ISessionLoginService {
       this.hasValue(userInfo.phoneNumber) &&
       this.hasValue(userInfo.birthDate) &&
       this.hasValue(userInfo.gpOdsCode) &&
+      this.hasValue(userInfo.nhsNumber) &&
       /^[0-9]{10}$/.test(userInfo.nhsNumber)
     );
   }
 
-  private hasValue(value: string): boolean {
-    return value.trim().length > 0;
+  private hasValue(value: unknown): value is string {
+    return typeof value === "string" && value.trim().length > 0;
   }
 
   private failure(code: SessionLoginErrorCode, message: string): SessionLoginFailure {

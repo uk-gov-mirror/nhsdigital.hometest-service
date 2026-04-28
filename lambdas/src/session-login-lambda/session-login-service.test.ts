@@ -308,6 +308,60 @@ describe("SessionLoginService.executeCallback", () => {
     });
   });
 
+  it("fails gracefully when a scalar user info claim is missing", async () => {
+    nhsLoginServiceMock.executeCallback.mockResolvedValue(
+      createNhsLoginSuccess({
+        userInfo: {
+          ...createNhsLoginSuccess().result.userInfo,
+          phone_number: undefined as unknown as string,
+        },
+      }),
+    );
+
+    const service = new SessionLoginService({
+      nhsLoginService: nhsLoginServiceMock,
+      sessionDbClient: sessionDbClientMock,
+      sessionTokenService: sessionTokenServiceMock,
+      sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
+    });
+
+    await expect(service.executeCallback("auth-code")).resolves.toEqual({
+      success: false,
+      error: {
+        code: "SESSION_DATA_INVALID",
+        message: "NHS user information is missing required session fields",
+      },
+    });
+  });
+
+  it("fails gracefully when a nested user info claim is missing", async () => {
+    nhsLoginServiceMock.executeCallback.mockResolvedValue(
+      createNhsLoginSuccess({
+        userInfo: {
+          ...createNhsLoginSuccess().result.userInfo,
+          gp_registration_details: undefined as unknown as { gp_ods_code: string },
+        },
+      }),
+    );
+
+    const service = new SessionLoginService({
+      nhsLoginService: nhsLoginServiceMock,
+      sessionDbClient: sessionDbClientMock,
+      sessionTokenService: sessionTokenServiceMock,
+      sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
+    });
+
+    await expect(service.executeCallback("auth-code")).resolves.toEqual({
+      success: false,
+      error: {
+        code: "SESSION_DATA_INVALID",
+        message: "NHS user information is missing required session fields",
+      },
+    });
+  });
+
   it("returns SESSION_PERSIST_FAILED when Aurora persistence fails", async () => {
     nhsLoginServiceMock.executeCallback.mockResolvedValue(createNhsLoginSuccess());
     sessionDbClientMock.createSession.mockRejectedValue(new Error("db down"));
