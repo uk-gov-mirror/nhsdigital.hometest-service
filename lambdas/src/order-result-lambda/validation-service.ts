@@ -2,15 +2,26 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { Observation } from "fhir/r4";
 
 import { OrderResultSummary } from "../lib/db/order-db";
-import { getCorrelationIdFromEventHeaders, isUUID } from "../lib/utils/utils";
+import {
+  extractInterpretationCodeFromFHIRObservation,
+  extractOrderUidFromFHIRObservation,
+  extractPatientIdFromFHIRObservation,
+  extractSupplierIdFromFHIRObservation,
+} from "../lib/fhir-observation-extractors";
+import { getCorrelationIdFromEventHeaders } from "../lib/utils/utils";
 import { generateReadableError } from "../lib/utils/validation-utils";
+import {
+  ValidationResult,
+  ValidationResultError,
+  errorResult,
+  successResult,
+} from "../lib/validation";
 import {
   Identifiers,
   InterpretationCode,
   orderResultFHIRObservationSchema,
   resultCodeMapping,
 } from "./models";
-import { ValidationResult, ValidationResultError, errorResult, successResult } from "./validation";
 
 const name = "order-result-lambda";
 
@@ -101,7 +112,9 @@ export async function validateDBData(
   observation: Observation,
   testOrderResult: OrderResultSummary,
 ): Promise<ValidationResult<{ isIdempotent: boolean }>> {
-  const interpretationCode = extractInterpretationCodeFromFHIRObservation(observation);
+  const interpretationCode = extractInterpretationCodeFromFHIRObservation(
+    observation,
+  ) as InterpretationCode;
   const { orderUid, patientId, supplierId, correlationId } = identifiers;
 
   if (!testOrderResult) {
@@ -165,58 +178,9 @@ export async function validateDBData(
   return successResult({ isIdempotent: false });
 }
 
-export function extractOrderUidFromFHIRObservation(observation: Observation): string {
-  if (observation.basedOn?.length === 0) {
-    throw new Error("Observation.basedOn is empty");
-  }
-
-  const reference = observation.basedOn?.[0]?.reference;
-
-  if (!reference) {
-    throw new Error("Observation.basedOn[0].reference is missing");
-  }
-
-  // Extract UUID from reference like "ServiceRequest/550e8400-e29b-41d4-a716-446655440000"
-  const parts = reference.split("/");
-  if (parts.length !== 2) {
-    throw new Error("Invalid basedOn reference format");
-  }
-
-  const orderUID = parts[1];
-
-  if (!isUUID(orderUID)) {
-    throw new Error("Invalid orderUID format");
-  }
-
-  return orderUID;
-}
-
-export function extractPatientIdFromFHIRObservation(observation: Observation): string {
-  const parts = observation.subject!.reference!.split("/");
-  if (parts.length !== 2) {
-    throw new Error("Invalid subject reference format");
-  }
-
-  const patientId = parts[1];
-
-  if (!isUUID(patientId)) {
-    throw new Error("Invalid patient ID format");
-  }
-
-  return patientId;
-}
-
-export function extractSupplierIdFromFHIRObservation(observation: Observation): string {
-  const parts = observation.performer![0].reference!.split("/");
-  if (parts.length !== 2) {
-    throw new Error("Invalid performer reference format");
-  }
-
-  return parts[1];
-}
-
-export function extractInterpretationCodeFromFHIRObservation(
-  observation: Observation,
-): InterpretationCode {
-  return observation.interpretation![0].coding![0].code as InterpretationCode;
-}
+export {
+  extractOrderUidFromFHIRObservation,
+  extractPatientIdFromFHIRObservation,
+  extractSupplierIdFromFHIRObservation,
+  extractInterpretationCodeFromFHIRObservation,
+} from "../lib/fhir-observation-extractors";

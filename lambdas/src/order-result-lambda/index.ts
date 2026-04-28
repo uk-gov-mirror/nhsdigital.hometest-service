@@ -103,7 +103,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return createFhirResponse(201, observation);
   }
 
-  const interpretationCode = extractInterpretationCodeFromFHIRObservation(observation);
+  const interpretationCode = extractInterpretationCodeFromFHIRObservation(
+    observation,
+  ) as InterpretationCode;
 
   try {
     await updateDatabase(identifiers, interpretationCode);

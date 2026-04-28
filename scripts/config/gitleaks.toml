@@ -28,6 +28,8 @@ paths = [
   '''tests/WorkerUserSession*''',
   '''.session-cache/*''',
   '''ui/.next/*''', '''ui/build/*''',
+  '''.pnpm/*''', '''ui/.pnpm/*''',
+  '''.pnpm-store/*''', '''ui/.pnpm-store/*''',
   '''cdk.out/*''',
   '''.idea/*'''
 ]

@@ -31,7 +31,41 @@ lambdas/src/
 
 ## Handler Pattern
 
+Lambdas can be invoked via a variety of methods:
+
+- SQS message
+- Scheduled event
+- API Gateway HTTP API
+- Manual invocation from another lambda
+
+Lambda handlers are wrapped in Middy middleware to add common functionality.
+
 Use this as the preferred structure for new lambdas:
+
+```typescript
+import middy from "@middy/core";
+
+import { init } from "./init";
+
+export const lambdaHandler = async (event: unknown): Promise<void> => {
+  const { myService } = await init();
+  // parse + validate request with Zod
+  // call services
+  // return response if needed
+};
+
+export const handler = middy(lambdaHandler);
+```
+
+Key rules:
+
+- The internal function is always `lambdaHandler` (named export).
+- The Middy-wrapped export is always `handler` (the actual Lambda entrypoint).
+- Import `init` at module scope, but call `init()` inside `lambdaHandler`. `init()` must be singleton-cached, so dependencies are still constructed once per cold start.
+
+### HTTP API Gateway
+
+When a lambda is invoked via the HTTP API, wrap the handler with the following Middy middleware in this order:
 
 ```typescript
 import middy from "@middy/core";
@@ -55,6 +89,7 @@ export const lambdaHandler = async (
   // parse + validate request with Zod
   // call services
   console.info(name, "Request received", { correlationId });
+  // return response
   return createJsonResponse(200, { result }, { "X-Correlation-ID": correlationId });
 };
 
@@ -64,13 +99,10 @@ export const handler = middy(lambdaHandler)
   .use(httpErrorHandler());
 ```
 
-Key rules:
-
-- The internal function is always `lambdaHandler` (named export).
-- The Middy-wrapped export is always `handler` (the actual Lambda entrypoint).
 - Middy middleware order is always: `httpSecurityHeaders` → `cors` → `httpErrorHandler`.
+  - `cors` is only required if the HTTP request is coming from a browser.
+  - `httpSecurityHeaders` and `httpErrorHandler` are always required.
 - Always pass the shared config objects: `httpSecurityHeaders(securityHeaders)` and `cors(defaultCorsOptions)` — never inline options.
-- Import `init` at module scope, but call `init()` inside `lambdaHandler`. `init()` must be singleton-cached, so dependencies are still constructed once per cold start.
 - Echo `X-Correlation-ID` in the response header for all JSON responses. FHIR-response lambdas (using `createFhirResponse`) do not set this header — that is an accepted divergence.
 - Use `createJsonResponse(statusCode, body, extraHeaders?)` for all JSON responses — never construct the response object manually.
 - For lambdas that return FHIR resources, use `createFhirResponse` / `createFhirErrorResponse` from `../lib/fhir-response` instead of `createJsonResponse`.
@@ -191,9 +223,8 @@ if (!parsed.success) {
 
 ## HTTP Client
 
-For any outbound HTTP calls from a lambda, always use `FetchHttpClient` (which implements the
-`HttpClient` interface) from `../lib/http/http-client`. Never use `axios`, `undici` directly,
-or bare `fetch` in handler or service code.
+For any outbound HTTP calls from a lambda, always use an implementation of `HttpClient` from `../lib/http/http-client`. The implementation of that `HttpClient` can be use-case specific, it might be the `FetchHttpClient` or it might be another implementation.
+Never use `axios`, `undici` directly, or bare `fetch` in handler or service code.
 
 ```typescript
 import { FetchHttpClient, type HttpClient } from "../lib/http/http-client";

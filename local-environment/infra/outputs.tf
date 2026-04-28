@@ -78,6 +78,11 @@ output "local_service_mode" {
   value       = var.local_service_mode
 }
 
+output "hiv_results_processor_lambda_name" {
+  description = "HIV Results Processor Lambda function name"
+  value       = aws_lambda_function.hiv_results_lambda.function_name
+}
+
 output "use_wiremock_auth" {
   description = "Whether local UI/tests should use WireMock-specific auth behavior"
   value       = tostring(local.resolved_use_wiremock_auth)
