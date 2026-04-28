@@ -1,14 +1,12 @@
 import { randomUUID } from "node:crypto";
 
 import { type ISessionTokenService } from "../lib/auth/session-token-service";
-import { type CreateSessionInput, type SessionDbClient } from "../lib/db/session-db-client";
+import { type SessionDbClient } from "../lib/db/session-db-client";
 import { type INhsLoginService, type NhsLoginErrorCode } from "../lib/login/nhs-login-service";
-import { type INhsUserInfoResponseModel } from "../lib/models/nhs-login/nhs-login-user-info-response-model";
-import { mapNhsUserInfoToSessionUserInfo } from "../lib/models/session/session";
+import { ISessionUserInfo, mapNhsUserInfoToSessionUserInfo } from "../lib/models/session/session";
 
 export interface SessionLoginSuccessResult {
-  userInfo: CreateSessionInput["userInfo"];
-  userInfoResponse: INhsUserInfoResponseModel;
+  userInfo: ISessionUserInfo;
   sessionId: string;
   refreshTokenId: string;
   sessionCreatedAt: string;
@@ -88,7 +86,7 @@ export class SessionLoginService implements ISessionLoginService {
       );
     }
 
-    const idTokenAudience = this.normalizeAudience(nhsLoginResult.result.idTokenAudience);
+    const idTokenAudience = this.normaliseAudience(nhsLoginResult.result.idTokenAudience);
 
     if (!idTokenAudience) {
       return this.failure(
@@ -152,7 +150,6 @@ export class SessionLoginService implements ISessionLoginService {
       success: true,
       result: {
         userInfo,
-        userInfoResponse: nhsLoginResult.result.userInfo,
         sessionId,
         refreshTokenId,
         sessionCreatedAt,
@@ -162,7 +159,7 @@ export class SessionLoginService implements ISessionLoginService {
     };
   }
 
-  private normalizeAudience(audience: string | string[] | undefined): string | undefined {
+  private normaliseAudience(audience: string | string[] | undefined): string | undefined {
     if (typeof audience !== "string") {
       return undefined;
     }
@@ -171,7 +168,7 @@ export class SessionLoginService implements ISessionLoginService {
     return trimmedAudience.length > 0 ? trimmedAudience : undefined;
   }
 
-  private isValidSessionUserInfo(userInfo: CreateSessionInput["userInfo"]): boolean {
+  private isValidSessionUserInfo(userInfo: ISessionUserInfo): boolean {
     return (
       this.hasValue(userInfo.issuer) &&
       this.hasValue(userInfo.audience) &&

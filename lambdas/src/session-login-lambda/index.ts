@@ -101,7 +101,12 @@ export const lambdaHandler = async (
 
   const response = createJsonResponse(
     200,
-    { ...result.result.userInfoResponse },
+    {
+      userInfo: result.result.userInfo,
+      sessionId: result.result.sessionId,
+      refreshTokenId: result.result.refreshTokenId,
+      sessionCreatedAt: result.result.sessionCreatedAt,
+    },
     {
       "X-Correlation-ID": correlationId,
     },

@@ -87,6 +87,27 @@ describe("session-login-lambda", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.headers?.["X-Correlation-ID"]).toBe("550e8400-e29b-41d4-a716-446655440000");
+    expect(response.body).toBe(
+      JSON.stringify({
+        userInfo: {
+          issuer: "https://id-token.example",
+          audience: "client-id-123",
+          subject: "user-123",
+          familyName: "MILLAR",
+          givenName: "Mona",
+          identityProofingLevel: "P9",
+          email: "test.user@example.com",
+          emailVerified: true,
+          phoneNumberVerified: true,
+          birthDate: "1990-01-01",
+          nhsNumber: "9999999999",
+          gpOdsCode: "A12345",
+        },
+        sessionId: "550e8400-e29b-41d4-a716-446655440000",
+        refreshTokenId: "650e8400-e29b-41d4-a716-446655440000",
+        sessionCreatedAt: "2026-04-27T10:15:30.000Z",
+      }),
+    );
     expect(response.multiValueHeaders?.["Set-Cookie"]).toEqual([
       "preview_auth=signed-preview-access; HttpOnly; Path=/session-preview; SameSite=Lax;",
       "preview_auth_refresh=signed-preview-refresh; HttpOnly; Path=/session-preview/refresh; SameSite=Lax;",

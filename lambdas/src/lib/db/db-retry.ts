@@ -42,6 +42,11 @@ const TRANSIENT_NETWORK_ERROR_CODES = new Set([
 // Source: https://www.postgresql.org/docs/current/errcodes-appendix.html
 const TRANSIENT_POSTGRES_ERROR_CODES = new Set(["57P01", "57P02", "57P03"]);
 
+// Note: unique-violation conflicts (for example PostgreSQL 23505) are intentionally not treated
+// as retryable here. The generic retry layer cannot distinguish a replay of the same successful
+// write after a transient connection failure from a genuine duplicate-key conflict. Session create
+// recovery for that case is deferred to a dedicated follow-up change.
+
 const TRANSIENT_ERROR_PATTERNS = [
   /cannot connect now/i,
   /connection terminated unexpectedly/i,

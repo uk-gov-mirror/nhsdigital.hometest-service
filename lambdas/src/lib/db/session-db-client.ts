@@ -118,8 +118,11 @@ export class SessionDbClient {
         $17::timestamptz,
         $18::timestamptz
       )
-      ON CONFLICT (session_id) DO UPDATE
-      SET session_id = EXCLUDED.session_id
+      -- Intentionally use a plain INSERT here.
+      -- We do not use ON CONFLICT ... DO UPDATE for session creation because a true
+      -- session_id or refresh_token_id collision must never overwrite another user's session.
+      -- A future ticket will add safe recovery for ambiguous duplicate-key failures that can
+      -- happen after a transient connection error during session creation.
       RETURNING ${SESSION_COLUMNS};
     `;
 

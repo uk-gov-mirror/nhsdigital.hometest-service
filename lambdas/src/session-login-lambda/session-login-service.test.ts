@@ -147,7 +147,6 @@ describe("SessionLoginService.executeCallback", () => {
           nhsNumber: "9999999999",
           gpOdsCode: "A12345",
         },
-        userInfoResponse: createNhsLoginSuccess().result.userInfo,
         sessionId: "550e8400-e29b-41d4-a716-446655440000",
         refreshTokenId: "650e8400-e29b-41d4-a716-446655440000",
         sessionCreatedAt: fixedNow.toISOString(),

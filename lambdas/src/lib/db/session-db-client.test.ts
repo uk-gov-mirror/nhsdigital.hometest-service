@@ -135,7 +135,7 @@ describe("SessionDbClient", () => {
 
       const [query] = mockDbClient.query.mock.calls[0];
       expect(query).toContain("$13::date");
-      expect(query).toContain("ON CONFLICT (session_id) DO UPDATE");
+      expect(query).not.toContain("ON CONFLICT (session_id) DO UPDATE");
     });
 
     it("should retry transient insert failures", async () => {
