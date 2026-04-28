@@ -60,6 +60,28 @@ lambdas/
 - Deploy via Terraform: `pnpm run local:terraform:apply`
 - Functions are available at `http://localhost:4566`
 
+### Invoking Lambdas via AWS CLI
+
+You can invoke a Lambda directly against LocalStack using the AWS CLI. Lambdas that are triggered via API Gateway expect an `APIGatewayProxyEvent` shape, so the payload must include a `headers` object and a `body` string.
+
+**Example — invoking `hometest-service-hiv-results-processor`:**
+
+```bash
+AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws lambda invoke \
+  --function-name hometest-service-hiv-results-processor \
+  --payload '{"headers":{"x-correlation-id":"550e8400-e29b-41d4-a716-446655440008"},"body":"{\"resourceType\":\"Observation\",\"id\":\"550e8400-e29b-41d4-a716-446655440001\",\"basedOn\":[{\"reference\":\"ServiceRequest/caaf11c4-96b1-4e92-adc2-5caae9c7732d\"}],\"status\":\"final\",\"code\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"31676001\",\"display\":\"HIV antigen test\"}],\"text\":\"HIV antigen test\"},\"subject\":{\"reference\":\"Patient/68db68d4-8d71-4a76-9988-d55e9bef99d4\"},\"effectiveDateTime\":\"2025-11-04T15:45:00Z\",\"issued\":\"2025-11-04T16:00:00Z\",\"performer\":[{\"reference\":\"Organization/c1a2b3c4-1234-4def-8abc-123456789abc\",\"type\":\"Organization\",\"display\":\"Supplier Organization Name\"}],\"interpretation\":[{\"coding\":[{\"system\":\"http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation\",\"code\":\"N\",\"display\":\"Normal\"}],\"text\":\"Normal\"}],\"valueCodeableConcept\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"260415000\",\"display\":\"Not detected\"}]}}"}' \
+  --cli-binary-format raw-in-base64-out \
+  --endpoint-url http://localhost:4566 \
+  --region eu-west-2 \
+  response.json
+```
+
+The response is written to `response.json`. Key points:
+
+- `headers` — must include `x-correlation-id` as a valid UUID; the handler will throw if it is missing or invalid.
+- `body` — the FHIR Observation resource serialised as a JSON string (escaped).
+- `AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test` — dummy credentials required by LocalStack.
+
 ### Best Practices
 
 - Keep handler functions small and focused

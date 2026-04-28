@@ -29,6 +29,12 @@ output.json
 # Node
 node_modules
 dist
+.pnpm-store
+ui/.pnpm-store
+.pnpm/
+ui/.pnpm/
+pnpm-debug.log
+pnpm-error.log
 
 # Next.js
 .next

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@aws-sdk/client-lambda':
-        specifier: 3.1028.0
-        version: 3.1028.0
+        specifier: 3.1037.0
+        version: 3.1037.0
       '@aws-sdk/client-secrets-manager':
         specifier: 3.1037.0
         version: 3.1037.0
@@ -147,8 +147,8 @@ packages:
     resolution: {integrity: sha512-/BQAyz98JRQFg3E8de3fGGydIYnsFRd6Cla4+zkviOe641fLCG0ZkPIk9D22HSi8qy9XKx+zk6ed2PcLO8uuPw==}
     engines: {node: '>=20.0.0'}
 
-  '@aws-sdk/client-lambda@3.1028.0':
-    resolution: {integrity: sha512-wAJT/1M5UT5d0Nw/7XTWzVO3nJpvghGxoiiKxR3KKIbOEIGPEY2FJpw5xZHFaLS7Du5sr9rCyqJ+0fiejID/gA==}
+  '@aws-sdk/client-lambda@3.1037.0':
+    resolution: {integrity: sha512-QGlFTYge89OcrCJXO2fMkqbYrASOd5Ut3V58EYcuajGONIKOxxP6UYwrZE5vDMebNJi2mPLesDKaM7aH7oqcrA==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/client-secrets-manager@3.1037.0':
@@ -3657,7 +3657,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-lambda@3.1028.0':
+  '@aws-sdk/client-lambda@3.1037.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
