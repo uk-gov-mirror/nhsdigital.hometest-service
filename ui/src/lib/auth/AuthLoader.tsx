@@ -13,6 +13,7 @@ const publicRoutes = new Set<string>([
   RoutePath.LoginPage,
   RoutePath.CallbackPage,
   RoutePath.ServiceErrorPage,
+  RoutePath.ConsentDeniedPage,
 ]);
 
 function getReturnTo(location: ReturnType<typeof useLocation>): string {

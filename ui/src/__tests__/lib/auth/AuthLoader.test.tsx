@@ -97,6 +97,28 @@ describe("AuthLoader", () => {
     expect(mockFetchSessionUser).not.toHaveBeenCalled();
   });
 
+  it("renders ConsentDeniedPage without checking the session", () => {
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={[RoutePath.ConsentDeniedPage]}>
+          <Routes>
+            <Route
+              path={RoutePath.ConsentDeniedPage}
+              element={
+                <AuthLoader>
+                  <div>Consent denied content</div>
+                </AuthLoader>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+
+    expect(screen.getByText("Consent denied content")).toBeInTheDocument();
+    expect(mockFetchSessionUser).not.toHaveBeenCalled();
+  });
+
   it("loads the session user and renders the protected outlet", async () => {
     mockFetchSessionUser.mockResolvedValue(mockUser);
 

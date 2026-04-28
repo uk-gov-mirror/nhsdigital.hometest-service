@@ -46,6 +46,7 @@ const REQUIRED_PAGE_KEYS: (keyof MainPagesContent)[] = [
   "blood-sample-guide",
   "suppliers-terms-conditions",
   "suppliers-privacy-policy",
+  "consent-denied",
 ];
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
