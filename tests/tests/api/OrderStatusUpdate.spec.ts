@@ -35,17 +35,18 @@ test.describe("Order Status Update API", { tag: ["@API", "@db"] }, () => {
     await testOrderDb.insertConsent(orderUid);
   });
 
-  test.afterEach(async ({ testOrderDb }) => {
+  test.afterEach(async ({ testOrderDb, testResultDb }) => {
     await testOrderDb.deleteOrderStatusByUid(orderUid);
     await testOrderDb.deleteConsentByOrderUid(orderUid);
     await testOrderDb.deleteOrderByUid(orderUid);
+    await testResultDb.deleteResultStatusByUid(orderUid);
     await testOrderDb.deletePatientMapping(nhsNumber, birthDate);
   });
 
   test(
     "success (201) persists order status updates",
     { tag: ["@API"] },
-    async ({ orderStatusApi, testOrderDb }) => {
+    async ({ orderStatusApi, testOrderDb, testResultDb }) => {
       const confirmedResponse = await orderStatusApi.updateOrderStatus(
         orderStatusPayload(orderUid, patientUid, defaultStatus, defaultIntent, {
           businessStatus: { text: OrderStatusTestData.BUSINESS_STATUS_ORDER_ACCEPTED },
@@ -84,6 +85,20 @@ test.describe("Order Status Update API", { tag: ["@API", "@db"] }, () => {
       const { statusCode: receivedStatusCode } =
         await testOrderDb.getLatestOrderStatusWithCountByOrderUid(orderUid);
       expect(receivedStatusCode).toBe(OrderStatusTestData.EXPECTED_STATUS_CODE_RECEIVED);
+
+      const processedResponse = await orderStatusApi.updateOrderStatus(
+        orderStatusPayload(orderUid, patientUid, defaultStatus, defaultIntent, {
+          businessStatus: { text: OrderStatusTestData.BUSINESS_STATUS_TEST_PROCESSED },
+        }),
+        buildHeaders(randomUUID()),
+      );
+
+      orderStatusApi.validateResponse(processedResponse, 201);
+
+      const resultStatus = await testResultDb.getLatestResultStatusByOrderUid(orderUid);
+      expect(resultStatus).toBe("RESULT_PROCESSED");
+      const orderStatus = await testOrderDb.getLatestOrderStatusWithCountByOrderUid(orderUid);
+      expect(orderStatus.statusCode).toBe(OrderStatusTestData.EXPECTED_STATUS_CODE_RECEIVED);
     },
   );
 });

@@ -15,6 +15,7 @@ export class OrderStatusTestData {
   static readonly BUSINESS_STATUS_ORDER_ACCEPTED = "order-accepted";
   static readonly BUSINESS_STATUS_DISPATCHED = "dispatched";
   static readonly BUSINESS_STATUS_RECEIVED_AT_LAB = "received-at-lab";
+  static readonly BUSINESS_STATUS_TEST_PROCESSED = "test-processed";
   static readonly EXPECTED_STATUS_CODE_CONFIRMED = "CONFIRMED";
   static readonly EXPECTED_STATUS_CODE_DISPATCHED = "DISPATCHED";
   static readonly EXPECTED_STATUS_CODE_RECEIVED = "RECEIVED";
