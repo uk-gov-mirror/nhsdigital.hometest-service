@@ -26,7 +26,7 @@
     "local:service:ui:stop": "pnpm run local:compose:down -- ui",
     "local:service:db:start": "pnpm run local:compose:up -- postgres-db",
     "local:service:db:stop": "pnpm run local:compose:down -- postgres-db",
-    "local:service:db:migrate": "pnpm run local:compose -- --profile backend up --build db-migrate",
+    "local:service:db:migrate": "bash local-environment/scripts/database/db-migrate.sh",
     "local:service:localstack:start": "pnpm run local:compose:up -- localstack",
     "local:service:localstack:stop": "pnpm run local:compose:down -- localstack",
     "local:terraform": "terraform -chdir=local-environment/infra",
