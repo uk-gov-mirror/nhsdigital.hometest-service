@@ -48,12 +48,9 @@ test.describe("Results Flow - Update Order Results Logic", { tag: ["@api", "@db"
   });
 
   test.afterEach(
-    "Delete result status, order status, order, and patient records from the database",
-    async ({ testedUser, testOrderDb, testResultDb }) => {
-      await testResultDb.deleteResultStatusByUid(orderId);
-      await testOrderDb.deleteOrderStatusByUid(orderId);
-      await testOrderDb.deleteConsentByPatientUid(patientId);
-      await testOrderDb.deleteOrderByPatientUid(patientId);
+    "Delete order, patient, and dependent records from the database",
+    async ({ testedUser, testOrderDb }) => {
+      await testOrderDb.deleteOrdersByPatientCascade(patientId);
       await testOrderDb.deletePatientMapping(testedUser.nhsNumber!, testedUser.dob!);
     },
   );

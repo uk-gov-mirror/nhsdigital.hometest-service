@@ -35,9 +35,7 @@ test.describe("GET Order API", { tag: ["@API", "@db"] }, () => {
   );
 
   test.afterAll(async ({ testedUser, testOrderDb }) => {
-    await testOrderDb.deleteOrderStatusByUid(orderId);
-    await testOrderDb.deleteConsentByPatientUid(patientId);
-    await testOrderDb.deleteOrderByPatientUid(patientId);
+    await testOrderDb.deleteOrdersByPatientCascade(patientId);
     await testOrderDb.deletePatientMapping(testedUser.nhsNumber!, testedUser.dob!);
   });
 });

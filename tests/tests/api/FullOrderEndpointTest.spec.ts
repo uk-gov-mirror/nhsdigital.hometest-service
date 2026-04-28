@@ -280,12 +280,9 @@ test.describe("Full Order E2E API", { tag: ["@API", "@db"] }, () => {
   });
 
   test.afterEach(
-    "Delete result status, order status, order, and patient records from the database",
-    async ({ testedUser, testOrderDb, testResultDb }) => {
-      await testResultDb.deleteResultStatusByUid(orderId);
-      await testOrderDb.deleteOrderStatusByUid(orderId);
-      await testOrderDb.deleteConsentByOrderUid(orderId);
-      await testOrderDb.deleteOrderByUid(orderId);
+    "Delete order, patient, and dependent records from the database",
+    async ({ testedUser, testOrderDb }) => {
+      await testOrderDb.deleteOrderCascade(orderId);
       await testOrderDb.deletePatientMapping(testedUser.nhsNumber!, testedUser.dob!);
     },
   );

@@ -3,10 +3,8 @@ import { randomUUID } from "crypto";
 import { expect, test } from "../../fixtures/IntegrationFixture";
 import { isValidReminder } from "../../models/TestReminder";
 import { OrderStatusTestData } from "../../test-data/OrderStatusTypes";
-import { OrderTestData } from "../../test-data/OrderTestData";
-import { RandomDataGenerator, buildHeaders, orderStatusPayload } from "../../utils";
+import { buildHeaders, orderStatusPayload } from "../../utils";
 
-const originator = OrderStatusTestData.DEFAULT_ORIGINATOR;
 const defaultStatus = OrderStatusTestData.DEFAULT_STATUS;
 const defaultIntent = OrderStatusTestData.DEFAULT_INTENT;
 
@@ -14,48 +12,14 @@ test.describe("Order Reminders", { tag: ["@API", "@db"] }, () => {
   let orderUid: string;
   let secondOrderUid: string;
   let patientUid: string;
-  let nhsNumber: string;
-  let birthDate: string;
 
-  test.beforeEach(async ({ testOrderDb }) => {
-    nhsNumber = RandomDataGenerator.generateNhsNumber();
-    birthDate = RandomDataGenerator.generateBirthDate();
+  test.beforeEach(async ({ testData }) => {
+    const first = await testData.createOrderForNewPatient();
+    orderUid = first.orderUid;
+    patientUid = first.patientUid;
 
-    const supplierId = await testOrderDb.getSupplierIdByName(OrderTestData.PREVENTX_SUPPLIER_NAME);
-    const testCode = await testOrderDb.getTestCodeByDescription(
-      OrderTestData.defaultOrder.testDescription,
-    );
-
-    patientUid = await testOrderDb.upsertPatient(nhsNumber, birthDate);
-    const orderResult = await testOrderDb.createTestOrder(
-      supplierId,
-      patientUid,
-      testCode,
-      originator,
-    );
-    orderUid = orderResult.order_uid;
-    await testOrderDb.insertConsent(orderUid);
-
-    const secondOrderResult = await testOrderDb.createTestOrder(
-      supplierId,
-      patientUid,
-      testCode,
-      originator,
-    );
-    secondOrderUid = secondOrderResult.order_uid;
-    await testOrderDb.insertConsent(secondOrderUid);
-  });
-
-  test.afterEach(async ({ testOrderDb, testRemindersDb }) => {
-    await testOrderDb.deleteOrderStatusByUid(orderUid);
-    await testOrderDb.deleteOrderStatusByUid(secondOrderUid);
-    await testOrderDb.deleteConsentByOrderUid(orderUid);
-    await testOrderDb.deleteConsentByOrderUid(secondOrderUid);
-    await testOrderDb.deleteOrderByUid(orderUid);
-    await testOrderDb.deleteOrderByUid(secondOrderUid);
-    await testOrderDb.deletePatientMapping(nhsNumber, birthDate);
-    await testRemindersDb.deleteRemindersByOrderUid(orderUid);
-    await testRemindersDb.deleteRemindersByOrderUid(secondOrderUid);
+    const second = await testData.createOrderForPatient(patientUid);
+    secondOrderUid = second.orderUid;
   });
 
   test(

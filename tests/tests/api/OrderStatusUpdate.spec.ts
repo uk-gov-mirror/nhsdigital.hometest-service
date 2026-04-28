@@ -2,44 +2,19 @@ import { randomUUID } from "crypto";
 
 import { expect, test } from "../../fixtures/IntegrationFixture";
 import { OrderStatusTestData } from "../../test-data/OrderStatusTypes";
-import { OrderTestData } from "../../test-data/OrderTestData";
-import { RandomDataGenerator, buildHeaders, orderStatusPayload } from "../../utils";
+import { buildHeaders, orderStatusPayload } from "../../utils";
 
-const originator = OrderStatusTestData.DEFAULT_ORIGINATOR;
 const defaultStatus = OrderStatusTestData.DEFAULT_STATUS;
 const defaultIntent = OrderStatusTestData.DEFAULT_INTENT;
 
 test.describe("Order Status Update API", { tag: ["@API", "@db"] }, () => {
   let orderUid: string;
   let patientUid: string;
-  let nhsNumber: string;
-  let birthDate: string;
 
-  test.beforeEach(async ({ testOrderDb }) => {
-    nhsNumber = RandomDataGenerator.generateNhsNumber();
-    birthDate = RandomDataGenerator.generateBirthDate();
-
-    const supplierId = await testOrderDb.getSupplierIdByName(OrderTestData.PREVENTX_SUPPLIER_NAME);
-    const testCode = await testOrderDb.getTestCodeByDescription(
-      OrderTestData.defaultOrder.testDescription,
-    );
-
-    patientUid = await testOrderDb.upsertPatient(nhsNumber, birthDate);
-    const orderResult = await testOrderDb.createTestOrder(
-      supplierId,
-      patientUid,
-      testCode,
-      originator,
-    );
-    orderUid = orderResult.order_uid;
-    await testOrderDb.insertConsent(orderUid);
-  });
-
-  test.afterEach(async ({ testOrderDb }) => {
-    await testOrderDb.deleteOrderStatusByUid(orderUid);
-    await testOrderDb.deleteConsentByOrderUid(orderUid);
-    await testOrderDb.deleteOrderByUid(orderUid);
-    await testOrderDb.deletePatientMapping(nhsNumber, birthDate);
+  test.beforeEach(async ({ testData }) => {
+    const created = await testData.createOrderForNewPatient();
+    orderUid = created.orderUid;
+    patientUid = created.patientUid;
   });
 
   test(

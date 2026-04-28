@@ -5,6 +5,7 @@ import { apiFixture } from "./apiFixture";
 import { configurationFixture } from "./configurationFixture";
 import { lambdaFixture } from "./lambdaFixture";
 import { logContextFixture } from "./logContextFixture";
+import { testDataFixture } from "./testDataFixture";
 
 export const test = mergeTests(
   configurationFixture,
@@ -12,5 +13,6 @@ export const test = mergeTests(
   dbFixture,
   lambdaFixture,
   logContextFixture,
+  testDataFixture,
 );
 export { expect } from "@playwright/test";

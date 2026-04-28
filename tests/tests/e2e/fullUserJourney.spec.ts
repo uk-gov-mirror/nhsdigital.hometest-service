@@ -119,16 +119,10 @@ test.describe("Home test E2E tests", { tag: ["@e2e", "@db"] }, () => {
     return await hivResultsApi.submitTestResults(observation, headersTestResults(randomUUID()));
   }
 
-  test.afterEach(async ({ testedUser, testOrderDb, testResultDb }) => {
+  test.afterEach(async ({ testedUser, testOrderDb }) => {
     const patientId = await testOrderDb.getPatientUidByNhsNumber(testedUser.nhsNumber!);
-    const order = await testOrderDb.getOrderByPatientUid(patientId!);
-    if (order) {
-      await testResultDb.deleteResultStatusByUid(order.order_uid);
-    }
     if (patientId) {
-      await testOrderDb.deleteConsentByPatientUid(patientId);
-      await testOrderDb.deleteOrderStatusByPatientUid(patientId);
-      await testOrderDb.deleteOrderByPatientUid(patientId);
+      await testOrderDb.deleteOrdersByPatientCascade(patientId);
     }
     await testOrderDb.deletePatientMapping(testedUser.nhsNumber!, testedUser.dob!);
   });
