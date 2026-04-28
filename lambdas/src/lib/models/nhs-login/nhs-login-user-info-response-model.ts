@@ -7,6 +7,7 @@ export interface INhsUserInfoResponseModel {
   identity_proofing_level: string;
   email: string;
   email_verified: string;
+  phone_number: string;
   phone_number_verified: string;
   birthdate: string;
   nhs_number: string;

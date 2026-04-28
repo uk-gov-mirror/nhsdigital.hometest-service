@@ -8,7 +8,7 @@ import {
 function createNhsUserInfo(
   overrides: Partial<INhsUserInfoResponseModel> = {},
 ): INhsUserInfoResponseModel {
-  return {
+  const defaults: INhsUserInfoResponseModel = {
     iss: "https://issuer.example",
     aud: "hometest",
     sub: "user-123",
@@ -17,12 +17,17 @@ function createNhsUserInfo(
     identity_proofing_level: "P9",
     email: "test.user@example.com",
     email_verified: "true",
+    phone_number: "+447700900123",
     phone_number_verified: "false",
     birthdate: "1990-01-01",
     nhs_number: "9999999999",
     gp_registration_details: {
       gp_ods_code: "A12345",
     },
+  };
+
+  return {
+    ...defaults,
     ...overrides,
   };
 }
@@ -37,6 +42,7 @@ function createSessionUserInfo(overrides: Partial<ISessionUserInfo> = {}): ISess
     identityProofingLevel: "P9",
     email: "test.user@example.com",
     emailVerified: true,
+    phoneNumber: "+447700900123",
     phoneNumberVerified: false,
     birthDate: "1990-01-01",
     nhsNumber: "9999999999",
@@ -60,6 +66,7 @@ describe("mapNhsUserInfoToSessionUserInfo", () => {
       identityProofingLevel: "P9",
       email: "test.user@example.com",
       emailVerified: true,
+      phoneNumber: "+447700900123",
       phoneNumberVerified: false,
       birthDate: "1990-01-01",
       nhsNumber: "9999999999",
@@ -91,6 +98,7 @@ describe("mapSessionUserInfoToNhsUserInfo", () => {
       identity_proofing_level: "P9",
       email: "test.user@example.com",
       email_verified: "true",
+      phone_number: "+447700900123",
       phone_number_verified: "false",
       birthdate: "1990-01-01",
       nhs_number: "9999999999",

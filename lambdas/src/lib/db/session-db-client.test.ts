@@ -37,6 +37,7 @@ function buildCreateSessionInput(overrides: Partial<CreateSessionInput> = {}): C
       identityProofingLevel: "P9",
       email: "jane@example.com",
       emailVerified: true,
+      phoneNumber: "+447700900123",
       phoneNumberVerified: false,
       birthDate: "1990-01-01",
       nhsNumber: "1234567890",
@@ -64,6 +65,7 @@ function buildSessionRow(overrides: Record<string, unknown> = {}): Record<string
     identity_proofing_level: session.userInfo.identityProofingLevel,
     email: session.userInfo.email,
     email_verified: session.userInfo.emailVerified,
+    phone_number: session.userInfo.phoneNumber,
     phone_number_verified: session.userInfo.phoneNumberVerified,
     birth_date: session.userInfo.birthDate,
     nhs_number: session.userInfo.nhsNumber,
@@ -123,6 +125,7 @@ describe("SessionDbClient", () => {
           session.userInfo.identityProofingLevel,
           session.userInfo.email,
           session.userInfo.emailVerified,
+          session.userInfo.phoneNumber,
           session.userInfo.phoneNumberVerified,
           session.userInfo.birthDate,
           session.userInfo.nhsNumber,
@@ -134,7 +137,7 @@ describe("SessionDbClient", () => {
       );
 
       const [query] = mockDbClient.query.mock.calls[0];
-      expect(query).toContain("$13::date");
+      expect(query).toContain("$14::date");
       expect(query).not.toContain("ON CONFLICT (session_id) DO UPDATE");
     });
 
@@ -224,6 +227,7 @@ describe("SessionDbClient", () => {
             identity_proofing_level: "P5",
             email: "jo@example.com",
             email_verified: false,
+            phone_number: "+447700900124",
             phone_number_verified: true,
             birth_date: "1985-05-05",
             nhs_number: "9999999999",
@@ -244,6 +248,7 @@ describe("SessionDbClient", () => {
         identityProofingLevel: "P5",
         email: "jo@example.com",
         emailVerified: false,
+        phoneNumber: "+447700900124",
         phoneNumberVerified: true,
         birthDate: "1985-05-05",
         nhsNumber: "9999999999",

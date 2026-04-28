@@ -23,6 +23,7 @@ interface SessionRow {
   identity_proofing_level: string;
   email: string;
   email_verified: boolean;
+  phone_number: string;
   phone_number_verified: boolean;
   birth_date: string;
   nhs_number: string;
@@ -61,6 +62,7 @@ const SESSION_COLUMNS = `
       identity_proofing_level,
       email,
       email_verified,
+      phone_number,
       phone_number_verified,
       birth_date,
       nhs_number,
@@ -90,6 +92,7 @@ export class SessionDbClient {
         identity_proofing_level,
         email,
         email_verified,
+        phone_number,
         phone_number_verified,
         birth_date,
         nhs_number,
@@ -111,12 +114,13 @@ export class SessionDbClient {
         $10,
         $11,
         $12,
-        $13::date,
-        $14,
+        $13,
+        $14::date,
         $15,
-        $16::timestamptz,
+        $16,
         $17::timestamptz,
-        $18::timestamptz
+        $18::timestamptz,
+        $19::timestamptz
       )
       -- Intentionally use a plain INSERT here.
       -- We do not use ON CONFLICT ... DO UPDATE for session creation because a true
@@ -138,6 +142,7 @@ export class SessionDbClient {
       session.userInfo.identityProofingLevel,
       session.userInfo.email,
       session.userInfo.emailVerified,
+      session.userInfo.phoneNumber,
       session.userInfo.phoneNumberVerified,
       session.userInfo.birthDate,
       session.userInfo.nhsNumber,
@@ -293,6 +298,7 @@ export class SessionDbClient {
         identityProofingLevel: row.identity_proofing_level,
         email: row.email,
         emailVerified: row.email_verified,
+        phoneNumber: row.phone_number,
         phoneNumberVerified: row.phone_number_verified,
         birthDate: row.birth_date,
         nhsNumber: row.nhs_number,

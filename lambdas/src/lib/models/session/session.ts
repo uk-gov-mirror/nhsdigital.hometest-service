@@ -9,6 +9,7 @@ export interface ISessionUserInfo {
   identityProofingLevel: string;
   email: string;
   emailVerified: boolean;
+  phoneNumber: string;
   phoneNumberVerified: boolean;
   birthDate: string;
   nhsNumber: string;
@@ -43,6 +44,7 @@ export function mapNhsUserInfoToSessionUserInfo(
     identityProofingLevel: userInfo.identity_proofing_level,
     email: userInfo.email,
     emailVerified: parseVerificationFlag(userInfo.email_verified),
+    phoneNumber: userInfo.phone_number,
     phoneNumberVerified: parseVerificationFlag(userInfo.phone_number_verified),
     birthDate: userInfo.birthdate,
     nhsNumber: userInfo.nhs_number,
@@ -62,6 +64,7 @@ export function mapSessionUserInfoToNhsUserInfo(
     identity_proofing_level: userInfo.identityProofingLevel,
     email: userInfo.email,
     email_verified: toVerificationFlag(userInfo.emailVerified),
+    phone_number: userInfo.phoneNumber,
     phone_number_verified: toVerificationFlag(userInfo.phoneNumberVerified),
     birthdate: userInfo.birthDate,
     nhs_number: userInfo.nhsNumber,

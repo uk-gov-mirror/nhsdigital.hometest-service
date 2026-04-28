@@ -97,6 +97,7 @@ entity "session" as session {
   identity_proofing_level : varchar(10)
   email : varchar(320)
   email_verified : boolean
+  phone_number: varchar(20)
   phone_number_verified : boolean
   birth_date : date
   nhs_number : varchar(10)

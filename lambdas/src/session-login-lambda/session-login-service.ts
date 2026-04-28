@@ -177,6 +177,7 @@ export class SessionLoginService implements ISessionLoginService {
       this.hasValue(userInfo.givenName) &&
       this.hasValue(userInfo.identityProofingLevel) &&
       this.hasValue(userInfo.email) &&
+      this.hasValue(userInfo.phoneNumber) &&
       this.hasValue(userInfo.birthDate) &&
       this.hasValue(userInfo.gpOdsCode) &&
       /^[0-9]{10}$/.test(userInfo.nhsNumber)
