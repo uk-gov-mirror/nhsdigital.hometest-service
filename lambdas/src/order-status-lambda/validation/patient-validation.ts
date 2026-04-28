@@ -1,4 +1,3 @@
-import { extractIdFromReference } from "../../lib/utils/fhir-utils";
 import { ValidationResult, errorResult, successResult } from "../../lib/validation";
 
 const name = "order-status-lambda";
@@ -36,3 +35,9 @@ export const validatePatientOwnership = (
 
   return successResult();
 };
+
+function extractIdFromReference(reference: string): string | null {
+  const parts = reference.split("/");
+
+  return parts.length === 2 ? parts[1] : null;
+}
