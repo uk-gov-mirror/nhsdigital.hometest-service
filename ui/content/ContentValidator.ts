@@ -40,12 +40,24 @@ const REQUIRED_PAGE_KEYS: (keyof MainPagesContent)[] = [
   "how-comfortable-pricking-finger",
   "cannot-use-service-under-18",
   "enter-mobile-phone-number",
+  "check-your-answers",
+  "confirm-mobile-phone-number",
   "service-error",
   "order-tracking",
   "test-results",
   "blood-sample-guide",
   "suppliers-terms-conditions",
   "suppliers-privacy-policy",
+];
+
+// All main pages that declare a pageTitle field in their schema interface.
+// Supplier pages are excluded because they derive their title at render time via formatPageTitle.
+// order-submitted is included here but not in REQUIRED_PAGE_KEYS because it has no top-level title field.
+const REQUIRED_PAGE_TITLE_KEYS: ReadonlyArray<keyof MainPagesContent> = [
+  ...REQUIRED_PAGE_KEYS.filter(
+    (k) => k !== "suppliers-terms-conditions" && k !== "suppliers-privacy-policy",
+  ),
+  "order-submitted",
 ];
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -101,6 +113,13 @@ const validatePagesContent = (content: unknown, errors: string[]): content is Ma
     }
   }
 
+  for (const key of REQUIRED_PAGE_TITLE_KEYS) {
+    const page = content[key];
+    if (isObject(page) && !isNonEmptyString(page.pageTitle)) {
+      errors.push(`pages.${key}.pageTitle must be a non-empty string`);
+    }
+  }
+
   return errors.length === 0;
 };
 
@@ -151,6 +170,9 @@ const assertValidLegalPageContent = (label: string, content: unknown): void => {
   const errors: string[] = [];
   if (!isObject(content)) {
     throw new Error(`${label} content must be an object`);
+  }
+  if (!isNonEmptyString(content["pageTitle"])) {
+    errors.push("pageTitle must be a non-empty string");
   }
   if (!isNonEmptyString(content["title"])) {
     errors.push("title must be a non-empty string");
