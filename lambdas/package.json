@@ -20,6 +20,7 @@
     "check-typescript": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-lambda": "3.1037.0",
     "@aws-sdk/client-secrets-manager": "3.1037.0",
     "@aws-sdk/client-sqs": "3.1037.0",
     "@aws-sdk/rds-signer": "3.1037.0",

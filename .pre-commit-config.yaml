@@ -40,6 +40,7 @@ repos:
         name: prettier-formatting
         entry: pnpm run format:pre-commit --
         language: system
+        exclude: (\.pnpm/|pnpm-debug\.log|pnpm-error\.log)
 
       - id: eslint-ui
         name: ESLint (UI)
@@ -92,7 +93,7 @@ repos:
         entry: yamllint
         language: python
         types: [file, yaml]
-        exclude: pnpm-lock.yaml
+        exclude: (pnpm-lock\.yaml|\.pnpm/|pnpm-debug\.log|pnpm-error\.log)
 
   # Markdown linting
   - repo: https://github.com/igorshubovych/markdownlint-cli
