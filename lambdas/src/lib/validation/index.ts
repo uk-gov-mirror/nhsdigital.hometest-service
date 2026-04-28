@@ -1,4 +1,4 @@
-import { ErrorStatusCode } from "../lib/fhir-response";
+import { ErrorStatusCode } from "../fhir-response";
 
 export interface ValidationError {
   errorCode: ErrorStatusCode;
@@ -6,12 +6,15 @@ export interface ValidationError {
   errorMessage: string;
   severity: "error" | "warning" | "information";
 }
+
 export type ValidationResult<T = void> = ValidationResultSuccess<T> | ValidationResultError;
+
 export type ValidationResultSuccess<T> = {
   success: true;
   data: T;
   error?: never;
 };
+
 export type ValidationResultError = {
   success: false;
   data?: never;

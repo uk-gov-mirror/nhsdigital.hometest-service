@@ -27,7 +27,9 @@ paths = [
   '''tests/.session-cache/*''',
   '''tests/WorkerUserSession*''',
   '''.session-cache/*''',
-  '''ui/.next/*''', '''ui/build/*''', '''ui/.pnpm-store/*''',
+  '''ui/.next/*''', '''ui/build/*''',
+  '''.pnpm/*''', '''ui/.pnpm/*''',
+  '''.pnpm-store/*''', '''ui/.pnpm-store/*''',
   '''cdk.out/*''',
   '''.idea/*'''
 ]
