@@ -64,20 +64,6 @@ services:
       - ./wiremock/__files:/home/wiremock/__files
     command: ["--verbose"]
 
-  db-migrate:
-    build:
-      context: ./scripts/database
-      dockerfile: Dockerfile
-    image: hometest-db-migrate:local
-    container_name: db-migrate
-    depends_on:
-      postgres-db:
-        condition: service_healthy
-    profiles:
-      - backend
-    volumes:
-      - ../database:/docker-entrypoint-initdb.d:ro
-
 volumes:
   ui_node_modules:
   postgres_data:

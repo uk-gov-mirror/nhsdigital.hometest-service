@@ -15,6 +15,16 @@ lambdas/
  │   │   ├── index.ts
  │   │   └── [other files]
  │   └── lib # shared code
+ ├── goose-migrator-lambda/
+ │   ├── src/
+ │   │   ├── main.go
+ │   │   ├── go.mod
+ │   │   └── go.sum
+ │   ├── migrations/
+ │   │   └── *.sql
+ │   └── scripts/
+ │       ├── build.sh
+ │       └── test-migrations.sh
  └── package.json
 ```
 
@@ -22,7 +32,7 @@ lambdas/
 
 ### Directory Naming
 
-- All Lambdas must be direct subdirectories of `src/`
+- All TypeScript Lambdas must be direct subdirectories of `src/`
 - Lambda directory names must end with `-lambda` suffix
 - Each Lambda directory contains its handler and related code
 
@@ -136,3 +146,28 @@ pnpm test
 ```
 
 **Note:** Integration tests are slower (~10-30s startup) but provide confidence that infrastructure components work correctly with real external systems.
+
+## Goose Migrator Lambda (Go)
+
+The `goose-migrator-lambda/` contains a Go-based Lambda that runs database migrations using [Goose](https://github.com/pressly/goose). Unlike the TypeScript lambdas above, it has its own build process and directory structure.
+
+Note that `lambdas/goose-migrator-lambda/migrations/` is the source of truth for all goose migration files in this repository.
+
+### Build
+
+```bash
+# Build the Lambda zip (uses content hashing to skip unnecessary rebuilds)
+./lambdas/goose-migrator-lambda/scripts/build.sh
+```
+
+Output: `lambdas/goose-migrator-lambda/goose-migrator-lambda.zip`
+
+### Test Migrations
+
+```bash
+# Run migrations against a local PostgreSQL container (requires Docker)
+mise run test-migrations
+
+# Same, but keep the PostgreSQL container running
+mise run test-migrations-keep
+```

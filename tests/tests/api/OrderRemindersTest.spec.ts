@@ -12,6 +12,7 @@ const defaultIntent = OrderStatusTestData.DEFAULT_INTENT;
 
 test.describe("Order Reminders", { tag: ["@API", "@db"] }, () => {
   let orderUid: string;
+  let secondOrderUid: string;
   let patientUid: string;
   let nhsNumber: string;
   let birthDate: string;
@@ -34,14 +35,27 @@ test.describe("Order Reminders", { tag: ["@API", "@db"] }, () => {
     );
     orderUid = orderResult.order_uid;
     await testOrderDb.insertConsent(orderUid);
+
+    const secondOrderResult = await testOrderDb.createTestOrder(
+      supplierId,
+      patientUid,
+      testCode,
+      originator,
+    );
+    secondOrderUid = secondOrderResult.order_uid;
+    await testOrderDb.insertConsent(secondOrderUid);
   });
 
   test.afterEach(async ({ testOrderDb, testRemindersDb }) => {
     await testOrderDb.deleteOrderStatusByUid(orderUid);
+    await testOrderDb.deleteOrderStatusByUid(secondOrderUid);
     await testOrderDb.deleteConsentByOrderUid(orderUid);
+    await testOrderDb.deleteConsentByOrderUid(secondOrderUid);
     await testOrderDb.deleteOrderByUid(orderUid);
+    await testOrderDb.deleteOrderByUid(secondOrderUid);
     await testOrderDb.deletePatientMapping(nhsNumber, birthDate);
     await testRemindersDb.deleteRemindersByOrderUid(orderUid);
+    await testRemindersDb.deleteRemindersByOrderUid(secondOrderUid);
   });
 
   test(
@@ -104,6 +118,51 @@ test.describe("Order Reminders", { tag: ["@API", "@db"] }, () => {
 
       const reminders = await testRemindersDb.getRemindersByOrderUid(orderUid);
       expect(reminders.every(isValidReminder)).toBe(true);
+    },
+  );
+
+  test(
+    "should cancel scheduled reminders when order status changes to received",
+    { tag: ["@API"] },
+    async ({ orderStatusApi, testRemindersDb, lambdaInvoker }) => {
+      await orderStatusApi.updateOrderStatus(
+        orderStatusPayload(secondOrderUid, patientUid, defaultStatus, defaultIntent, {
+          businessStatus: { text: OrderStatusTestData.BUSINESS_STATUS_DISPATCHED },
+        }),
+        buildHeaders(randomUUID()),
+      );
+
+      await testRemindersDb.updateReminderTriggeredAt(secondOrderUid, 1, 7);
+      await lambdaInvoker.invokeReminderDispatch();
+
+      await orderStatusApi.updateOrderStatus(
+        orderStatusPayload(secondOrderUid, patientUid, defaultStatus, defaultIntent, {
+          businessStatus: { text: OrderStatusTestData.BUSINESS_STATUS_RECEIVED_AT_LAB },
+        }),
+        buildHeaders(randomUUID()),
+      );
+      await lambdaInvoker.invokeReminderDispatch();
+
+      const remindersCountAfter = await testRemindersDb.getRemindersCountByOrderUid(secondOrderUid);
+      expect(remindersCountAfter).toBe(2);
+      expect(
+        await testRemindersDb.getReminderStatusByOrderUidAndReminderNumber(secondOrderUid, 1),
+      ).toBe("QUEUED");
+      const secondReminderStatus =
+        await testRemindersDb.getReminderStatusByOrderUidAndReminderNumber(secondOrderUid, 2);
+      expect(secondReminderStatus).toBe("CANCELLED");
+
+      await testRemindersDb.updateReminderTriggeredAt(secondOrderUid, 1, 15);
+      await lambdaInvoker.invokeReminderDispatch();
+      const remindersCountAfterSecondDispatch =
+        await testRemindersDb.getRemindersCountByOrderUid(secondOrderUid);
+      expect(remindersCountAfterSecondDispatch).toBe(2);
+
+      await testRemindersDb.updateReminderTriggeredAt(secondOrderUid, 2, 15);
+      await lambdaInvoker.invokeReminderDispatch();
+      const remindersCountAfterThirdDispatch =
+        await testRemindersDb.getRemindersCountByOrderUid(secondOrderUid);
+      expect(remindersCountAfterThirdDispatch).toBe(2);
     },
   );
 });

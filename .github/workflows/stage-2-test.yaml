@@ -61,9 +61,21 @@ jobs:
           test-name: "Jest Lambda Tests"
           report-title: "Lambdas Coverage Report"
 
+  test-goose-migrations:
+    name: "Test Goose DB Migrations"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+      - name: "Initialize mise"
+        uses: ./.github/actions/init-mise
+      - name: "Run Goose Migration Tests"
+        run: mise run test-migrations
+
   perform-static-analysis:
     name: "Perform static analysis"
-    needs: [test-unit-ui, test-unit-lambda]
+    needs: [test-unit-ui, test-unit-lambda, test-goose-migrations]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
