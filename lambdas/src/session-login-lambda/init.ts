@@ -42,7 +42,13 @@ export interface SessionLoginLambdaDependencies {
 }
 
 function parsePositiveInteger(name: string, value: string): number {
-  const parsedValue = Number.parseInt(value, 10);
+  const trimmedValue = value.trim();
+
+  if (!/^[1-9]\d*$/.test(trimmedValue)) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+
+  const parsedValue = Number(trimmedValue);
 
   if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
     throw new Error(`${name} must be a positive integer`);

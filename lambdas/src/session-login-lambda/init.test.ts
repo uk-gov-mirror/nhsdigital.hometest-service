@@ -203,6 +203,24 @@ describe("session-login-lambda init", () => {
     );
   });
 
+  it("throws when a duration contains trailing characters", async () => {
+    setEnvVariableMocks({ AUTH_SESSION_MAX_DURATION_MINUTES: "60abc" });
+
+    const { buildEnvironment: init } = await import("./init");
+    await expect(init()).rejects.toThrow(
+      "AUTH_SESSION_MAX_DURATION_MINUTES must be a positive integer",
+    );
+  });
+
+  it("throws when a duration is not a whole number", async () => {
+    setEnvVariableMocks({ AUTH_SESSION_MAX_DURATION_MINUTES: "60.5" });
+
+    const { buildEnvironment: init } = await import("./init");
+    await expect(init()).rejects.toThrow(
+      "AUTH_SESSION_MAX_DURATION_MINUTES must be a positive integer",
+    );
+  });
+
   it("throws when AUTH_COOKIE_SAME_SITE is not an allowed value", async () => {
     setEnvVariableMocks({ AUTH_COOKIE_SAME_SITE: "Invalid" });
 
