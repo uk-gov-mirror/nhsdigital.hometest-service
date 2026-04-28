@@ -27,7 +27,7 @@ describe("OrderService", () => {
         o.patient_uid,
         r.status AS result_status,
         r.correlation_id,
-        os.status_code AS order_status_code
+        los.status_code AS order_status_code
       FROM test_order o
       LEFT JOIN Lateral (
         SELECT
@@ -37,12 +37,7 @@ describe("OrderService", () => {
         WHERE o.order_uid = r.order_uid
         ORDER BY r.created_at DESC LIMIT 1
       ) r ON true
-      LEFT JOIN Lateral (
-        SELECT os.status_code
-        FROM order_status os
-        WHERE o.order_uid = os.order_uid
-        ORDER BY os.created_at DESC LIMIT 1
-      ) os ON true
+      LEFT JOIN latest_order_status los ON los.order_uid = o.order_uid
       WHERE o.order_uid = $1::uuid;
     `;
 
@@ -104,15 +99,12 @@ describe("OrderService", () => {
       );
 
       const expectedOrderStatusQuery = `
-          WITH latest AS
-            (SELECT status_code
-            FROM order_status
-            WHERE order_uid = $1::uuid
-            ORDER BY created_at DESC
-            LIMIT 1)
           INSERT INTO order_status (order_uid, status_code, correlation_id)
           SELECT $1::uuid, $2::varchar(50), $3::uuid
-          WHERE NOT EXISTS (SELECT 1 FROM latest WHERE latest.status_code = $2::varchar(50));
+          WHERE NOT EXISTS (
+            SELECT 1 FROM latest_order_status
+            WHERE order_uid = $1::uuid AND status_code = $2::varchar(50)
+          );
           `;
       const expectedResultStatusQuery = `
           INSERT INTO result_status (order_uid, status, correlation_id)

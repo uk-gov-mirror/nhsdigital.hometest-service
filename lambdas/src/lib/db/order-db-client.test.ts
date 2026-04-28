@@ -85,22 +85,20 @@ describe("OrderDbClient", () => {
           o.created_at AS created_at,
           o.test_code AS test_code,
           tt.description AS test_description,
-          os.status_code AS status_code,
+          los.status_code AS status_code,
           st.description AS status_description,
-          os.created_at AS status_created_at,
+          los.created_at AS status_created_at,
           s.supplier_id AS supplier_id,
           s.supplier_name AS supplier_name,
           p.nhs_number AS patient_nhs_number,
           p.birth_date AS patient_birth_date
       FROM test_order o
       INNER JOIN test_type tt ON tt.test_code = o.test_code
-      INNER JOIN order_status os ON os.order_uid = o.order_uid
-      INNER JOIN status_type st ON st.status_code = os.status_code
+      INNER JOIN latest_order_status los ON los.order_uid = o.order_uid
+      INNER JOIN status_type st ON st.status_code = los.status_code
       INNER JOIN patient_mapping p ON p.patient_uid = o.patient_uid
       INNER JOIN supplier s ON s.supplier_id = o.supplier_id
-      WHERE o.order_uid = $1::uuid AND p.nhs_number = $2 AND p.birth_date = $3::date
-      ORDER BY os.created_at DESC
-      LIMIT 1;`;
+      WHERE o.order_uid = $1::uuid AND p.nhs_number = $2 AND p.birth_date = $3::date;`;
 
       const actualQuery = mockDbClient.query.mock.calls[0][0];
 

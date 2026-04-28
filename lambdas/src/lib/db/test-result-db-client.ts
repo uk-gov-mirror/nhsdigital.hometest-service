@@ -11,11 +11,7 @@ export interface TestResult {
 export class TestResultDbClient {
   constructor(private readonly dbClient: DBClient) {}
 
-  public async getResult(
-    orderId: string,
-    nhsNumber: string,
-    dateOfBirth: Date,
-  ) {
+  public async getResult(orderId: string, nhsNumber: string, dateOfBirth: Date) {
     const query = `
       SELECT
           rs.result_id AS id,
@@ -24,14 +20,9 @@ export class TestResultDbClient {
       FROM test_order o
       INNER JOIN patient_mapping p ON p.patient_uid = o.patient_uid
       INNER JOIN result_status rs ON rs.order_uid = o.order_uid
+      INNER JOIN latest_order_status los ON los.order_uid = o.order_uid
       WHERE
-          (
-            SELECT os.status_code = 'COMPLETE'
-            FROM order_status os
-            WHERE os.order_uid = $1::uuid
-            ORDER BY os.created_at DESC
-            LIMIT 1
-          ) AND
+          los.status_code = 'COMPLETE' AND
           o.order_uid = $1::uuid AND
           p.nhs_number = $2 AND
           p.birth_date = $3::date
@@ -39,10 +30,11 @@ export class TestResultDbClient {
       LIMIT 1;
     `;
 
-    const result = await this.dbClient.query<
-      TestResult,
-      [string, string, Date]
-    >(query, [orderId, nhsNumber, dateOfBirth]);
+    const result = await this.dbClient.query<TestResult, [string, string, Date]>(query, [
+      orderId,
+      nhsNumber,
+      dateOfBirth,
+    ]);
 
     return result?.rows[0] ?? null;
   }
