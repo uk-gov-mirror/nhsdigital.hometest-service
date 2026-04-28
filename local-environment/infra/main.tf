@@ -440,7 +440,7 @@ module "order_result_lambda" {
     DB_SCHEMA                     = "hometest"
     DB_SECRET_NAME                = "postgres-db-password"
     DB_SSL                        = "false"
-    RESULT_PROCESSING_LAMBDA_NAME = module.hiv_results_lambda.function_name
+    RESULT_PROCESSING_LAMBDA_NAME = aws_lambda_function.hiv_results_lambda.function_name
   }
 }
 

@@ -40,25 +40,19 @@ export const lambdaHandler = async (
   }
 
   const { identifiers, observation } = validationResult.data;
+  const logContext = { orderUid: identifiers.orderUid, correlationId: identifiers.correlationId };
 
   let testOrderResult: OrderResultSummary | null;
 
   try {
     testOrderResult = await orderService.retrieveOrderDetails(identifiers.orderUid);
   } catch (error) {
-    console.error(name, "Failed to retrieve order details", {
-      error,
-      orderUid: identifiers.orderUid,
-      correlationId: identifiers.correlationId,
-    });
+    console.error(name, "Failed to retrieve order details", { ...logContext, error });
     return createFhirErrorResponse(500, "exception", "An internal error occurred", "fatal");
   }
 
   if (!testOrderResult) {
-    console.error(name, "Test order not found for orderUid", {
-      orderUid: identifiers.orderUid,
-      correlationId: identifiers.correlationId,
-    });
+    console.error(name, "Test order not found for orderUid", logContext);
     return createFhirErrorResponse(
       404,
       "not-found",
@@ -89,11 +83,7 @@ export const lambdaHandler = async (
       observation,
     });
   } catch (error) {
-    console.error(name, "Result processing failed", {
-      error,
-      orderUid: identifiers.orderUid,
-      correlationId: identifiers.correlationId,
-    });
+    console.error(name, "Result processing failed", { ...logContext, error });
     return createFhirErrorResponse(500, "exception", "An internal error occurred", "fatal");
   }
 
