@@ -93,9 +93,10 @@ export const lambdaHandler = async (
         try {
           await insertResultStatusCommand.execute(orderId, resolved.status, correlationId);
         } catch (error) {
-          console.warn(name, "Failed to update result status", {
+          console.error(name, "Failed to update result status", {
             ...logContext,
             resultStatus: resolved.status,
+            error,
           });
         }
 
