@@ -55,7 +55,7 @@ jest.mock("../lib/login/nhs-login-client", () => ({
 }));
 
 jest.mock("../lib/login/nhs-token-verifier", () => ({
-  NhsTokenVerifier: jest.fn().mockImplementation(() => ({ verifyIdToken: jest.fn() })),
+  NhsTokenVerifier: jest.fn().mockImplementation(() => ({ verifyToken: jest.fn() })),
 }));
 
 jest.mock("../lib/login/nhs-login-service", () => ({
@@ -155,6 +155,7 @@ describe("session-login-lambda init", () => {
       sessionDbClient: expect.any(Object),
       sessionTokenService: expect.any(Object),
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "hometest-preview",
     });
     expect(result).toEqual({
       sessionLoginService: mockSessionLoginServiceInstance,
@@ -190,6 +191,36 @@ describe("session-login-lambda init", () => {
     const { buildEnvironment: init } = await import("./init");
     await expect(init()).rejects.toThrow(
       "AUTH_SESSION_MAX_DURATION_MINUTES must be a positive integer",
+    );
+  });
+
+  it("throws when AUTH_COOKIE_SAME_SITE is not an allowed value", async () => {
+    setEnvVariableMocks({ AUTH_COOKIE_SAME_SITE: "Invalid" });
+
+    const { buildEnvironment: init } = await import("./init");
+    await expect(init()).rejects.toThrow(
+      "AUTH_COOKIE_SAME_SITE must be one of Strict, Lax, or None",
+    );
+  });
+
+  it("throws when SameSite=None is configured without Secure", async () => {
+    setEnvVariableMocks({ AUTH_COOKIE_SAME_SITE: "None", AUTH_COOKIE_SECURE: "false" });
+
+    const { buildEnvironment: init } = await import("./init");
+    await expect(init()).rejects.toThrow(
+      "AUTH_COOKIE_SECURE must be true when AUTH_COOKIE_SAME_SITE is None",
+    );
+  });
+
+  it("throws when the preview cookie private key secret value has an invalid JSON shape", async () => {
+    mockSessionLoginGetSecretValue.mockReset();
+    mockSessionLoginGetSecretValue
+      .mockResolvedValueOnce("test-nhs-login-private-key")
+      .mockResolvedValueOnce(JSON.stringify({ key: "   " }));
+
+    const { buildEnvironment: init } = await import("./init");
+    await expect(init()).rejects.toThrow(
+      "AUTH_COOKIE_PRIVATE_KEYS_SECRET_NAME secret value must be either a non-JSON private key string or a JSON object containing a non-empty 'key' entry.",
     );
   });
 

@@ -16,6 +16,7 @@ import {
   retrieveOptionalEnvVariable,
   retrieveOptionalEnvVariableWithDefault,
 } from "../lib/utils/utils";
+import { type PreviewCookieSameSite, parsePreviewCookieSameSite } from "./cookies";
 import { type ISessionLoginService } from "./session-login-service";
 import { SessionLoginService } from "./session-login-service";
 
@@ -30,13 +31,13 @@ interface SessionLoginEnvVariables {
   authSessionMaxDurationMinutes: number;
   authAccessTokenExpiryDurationMinutes: number;
   authRefreshTokenExpiryDurationMinutes: number;
-  authCookieSameSite: string;
+  authCookieSameSite: PreviewCookieSameSite;
   authCookieSecure: boolean;
 }
 
 export interface SessionLoginLambdaDependencies {
   sessionLoginService: ISessionLoginService;
-  authCookieSameSite: string;
+  authCookieSameSite: PreviewCookieSameSite;
   authCookieSecure: boolean;
 }
 
@@ -60,7 +61,7 @@ function parseAuthCookiePrivateKey(secretValue: string): string {
     }
 
     throw new Error(
-      "AUTH_COOKIE_PRIVATE_KEYS_SECRET_NAME must be either a non-JSON private key string or a JSON object containing a non-empty 'key' entry.",
+      "AUTH_COOKIE_PRIVATE_KEYS_SECRET_NAME secret value must be either a non-JSON private key string or a JSON object containing a non-empty 'key' entry.",
     );
   } catch (error) {
     if (!(error instanceof SyntaxError)) {
@@ -76,6 +77,9 @@ function parseAuthCookiePrivateKey(secretValue: string): string {
 }
 
 function loadEnv(): SessionLoginEnvVariables {
+  const authCookieSecure =
+    retrieveOptionalEnvVariableWithDefault("AUTH_COOKIE_SECURE", "true").toLowerCase() === "true";
+
   return {
     awsRegion: retrieveMandatoryEnvVariable("AWS_REGION"),
     nhsLoginBaseEndpointUrl: retrieveMandatoryEnvVariable("NHS_LOGIN_BASE_ENDPOINT_URL"),
@@ -98,9 +102,11 @@ function loadEnv(): SessionLoginEnvVariables {
       "AUTH_REFRESH_TOKEN_EXPIRY_DURATION_MINUTES",
       retrieveMandatoryEnvVariable("AUTH_REFRESH_TOKEN_EXPIRY_DURATION_MINUTES"),
     ),
-    authCookieSameSite: retrieveMandatoryEnvVariable("AUTH_COOKIE_SAME_SITE"),
-    authCookieSecure:
-      retrieveOptionalEnvVariableWithDefault("AUTH_COOKIE_SECURE", "true").toLowerCase() === "true",
+    authCookieSameSite: parsePreviewCookieSameSite(
+      retrieveMandatoryEnvVariable("AUTH_COOKIE_SAME_SITE"),
+      authCookieSecure,
+    ),
+    authCookieSecure,
   };
 }
 
@@ -156,6 +162,7 @@ export async function buildEnvironment(): Promise<SessionLoginLambdaDependencies
     sessionDbClient,
     sessionTokenService,
     sessionMaxDurationMinutes: envVars.authSessionMaxDurationMinutes,
+    nhsLoginClientId: envVars.nhsLoginClientId,
   });
 
   return {

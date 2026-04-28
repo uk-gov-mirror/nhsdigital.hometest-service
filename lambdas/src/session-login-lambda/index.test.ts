@@ -7,10 +7,20 @@ jest.mock("./init", () => ({
 }));
 
 describe("session-login-lambda", () => {
+  let consoleInfoSpy: jest.SpyInstance;
+  let consoleErrorSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.resetModules();
     process.env.ALLOW_ORIGIN = "http://localhost:3000";
     mockInit.mockReset();
+    consoleInfoSpy = jest.spyOn(console, "info").mockImplementation(() => undefined);
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleInfoSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 
   it("returns 400 when body is missing", async () => {
@@ -206,6 +216,16 @@ describe("session-login-lambda", () => {
 
     expect(response.statusCode).toBe(401);
     expect(response.body).toBe(JSON.stringify({ message: "Unable to verify NHS identity token" }));
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      "session-login-lambda",
+      "Preview session login failed",
+      {
+        correlationId: "550e8400-e29b-41d4-a716-446655440000",
+        code: "ID_TOKEN_VERIFICATION_FAILED",
+        statusCode: 401,
+      },
+    );
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
   it("returns 502 for upstream NHS exchange failures", async () => {
@@ -233,5 +253,15 @@ describe("session-login-lambda", () => {
     } as unknown as APIGatewayProxyEvent);
 
     expect(response.statusCode).toBe(502);
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      "session-login-lambda",
+      "Preview session login failed",
+      {
+        correlationId: "550e8400-e29b-41d4-a716-446655440000",
+        code: "TOKEN_EXCHANGE_FAILED",
+        statusCode: 502,
+      },
+    );
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 });

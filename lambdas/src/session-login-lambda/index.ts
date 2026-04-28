@@ -91,9 +91,15 @@ export const lambdaHandler = async (
   const result = await sessionLoginService.executeCallback(body.code);
 
   if (!result.success) {
-    console.error(name, "Preview session login failed", { correlationId, code: result.error.code });
+    const statusCode = statusCodeForError(result.error.code);
+    console.info(name, "Preview session login failed", {
+      correlationId,
+      code: result.error.code,
+      statusCode,
+    });
+
     return createJsonResponse(
-      statusCodeForError(result.error.code),
+      statusCode,
       { message: result.error.message },
       { "X-Correlation-ID": correlationId },
     );

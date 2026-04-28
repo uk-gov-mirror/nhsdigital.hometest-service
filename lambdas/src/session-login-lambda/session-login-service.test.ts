@@ -97,6 +97,7 @@ describe("SessionLoginService.executeCallback", () => {
       sessionDbClient: sessionDbClientMock,
       sessionTokenService: sessionTokenServiceMock,
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
       uuidGenerator: uuidGeneratorMock,
       clock: () => fixedNow,
     });
@@ -174,6 +175,7 @@ describe("SessionLoginService.executeCallback", () => {
       sessionDbClient: sessionDbClientMock,
       sessionTokenService: sessionTokenServiceMock,
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
     });
 
     await expect(service.executeCallback("bad-code")).resolves.toEqual({
@@ -196,6 +198,7 @@ describe("SessionLoginService.executeCallback", () => {
       sessionDbClient: sessionDbClientMock,
       sessionTokenService: sessionTokenServiceMock,
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
     });
 
     await expect(service.executeCallback("auth-code")).resolves.toEqual({
@@ -207,9 +210,58 @@ describe("SessionLoginService.executeCallback", () => {
     });
   });
 
-  it("fails when the verified ID token audience is not a single string", async () => {
+  it("accepts an array-form audience when it includes the configured client ID", async () => {
     nhsLoginServiceMock.executeCallback.mockResolvedValue(
-      createNhsLoginSuccess({ idTokenAudience: ["client-id-123"] }),
+      createNhsLoginSuccess({ idTokenAudience: ["other-audience", "client-id-123"] }),
+    );
+
+    sessionDbClientMock.createSession.mockResolvedValue({
+      sessionId: "550e8400-e29b-41d4-a716-446655440000",
+      refreshTokenId: "650e8400-e29b-41d4-a716-446655440000",
+      nhsAccessToken: "nhs-access-token",
+      userInfo: {
+        issuer: "https://id-token.example",
+        audience: "client-id-123",
+        subject: "user-123",
+        familyName: "MILLAR",
+        givenName: "Mona",
+        identityProofingLevel: "P9",
+        email: "test.user@example.com",
+        emailVerified: true,
+        phoneNumber: "+447700900123",
+        phoneNumberVerified: false,
+        birthDate: "1990-01-01",
+        nhsNumber: "9999999999",
+        gpOdsCode: "A12345",
+      },
+      sessionCreatedAt: fixedNow.toISOString(),
+      lastRefreshAt: fixedNow.toISOString(),
+      maxExpiresAt: "2026-04-27T11:15:30.000Z",
+    });
+
+    const service = new SessionLoginService({
+      nhsLoginService: nhsLoginServiceMock,
+      sessionDbClient: sessionDbClientMock,
+      sessionTokenService: sessionTokenServiceMock,
+      sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
+      uuidGenerator: uuidGeneratorMock,
+      clock: () => fixedNow,
+    });
+
+    await expect(service.executeCallback("auth-code")).resolves.toMatchObject({
+      success: true,
+      result: {
+        userInfo: {
+          audience: "client-id-123",
+        },
+      },
+    });
+  });
+
+  it("fails when the verified ID token audience does not include the configured client ID", async () => {
+    nhsLoginServiceMock.executeCallback.mockResolvedValue(
+      createNhsLoginSuccess({ idTokenAudience: ["other-audience"] }),
     );
 
     const service = new SessionLoginService({
@@ -217,6 +269,7 @@ describe("SessionLoginService.executeCallback", () => {
       sessionDbClient: sessionDbClientMock,
       sessionTokenService: sessionTokenServiceMock,
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
     });
 
     await expect(service.executeCallback("auth-code")).resolves.toEqual({
@@ -243,6 +296,7 @@ describe("SessionLoginService.executeCallback", () => {
       sessionDbClient: sessionDbClientMock,
       sessionTokenService: sessionTokenServiceMock,
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
     });
 
     await expect(service.executeCallback("auth-code")).resolves.toEqual({
@@ -263,6 +317,7 @@ describe("SessionLoginService.executeCallback", () => {
       sessionDbClient: sessionDbClientMock,
       sessionTokenService: sessionTokenServiceMock,
       sessionMaxDurationMinutes: 60,
+      nhsLoginClientId: "client-id-123",
       uuidGenerator: uuidGeneratorMock,
       clock: () => fixedNow,
     });

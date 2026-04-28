@@ -137,6 +137,7 @@ describe("SessionDbClient", () => {
       );
 
       const [query] = mockDbClient.query.mock.calls[0];
+      expect(query).toContain("$13,");
       expect(query).toContain("$14::date");
       expect(query).not.toContain("ON CONFLICT (session_id) DO UPDATE");
     });

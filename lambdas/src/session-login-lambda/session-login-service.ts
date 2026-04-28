@@ -49,6 +49,7 @@ export interface SessionLoginServiceParams {
   sessionDbClient: SessionLoginSessionDbClient;
   sessionTokenService: ISessionTokenService;
   sessionMaxDurationMinutes: number;
+  nhsLoginClientId: string;
   uuidGenerator?: () => string;
   clock?: () => Date;
 }
@@ -58,6 +59,7 @@ export class SessionLoginService implements ISessionLoginService {
   private readonly sessionDbClient: SessionLoginSessionDbClient;
   private readonly sessionTokenService: ISessionTokenService;
   private readonly sessionMaxDurationMinutes: number;
+  private readonly nhsLoginClientId: string;
   private readonly uuidGenerator: () => string;
   private readonly clock: () => Date;
 
@@ -66,6 +68,7 @@ export class SessionLoginService implements ISessionLoginService {
     this.sessionDbClient = params.sessionDbClient;
     this.sessionTokenService = params.sessionTokenService;
     this.sessionMaxDurationMinutes = params.sessionMaxDurationMinutes;
+    this.nhsLoginClientId = params.nhsLoginClientId;
     this.uuidGenerator = params.uuidGenerator ?? randomUUID; // dependency injection allows for easier testing, but default to crypto.randomUUID if not provided
     this.clock = params.clock ?? (() => new Date()); // dependency injection allows for easier testing, but default to current time if not provided
   }
@@ -86,7 +89,7 @@ export class SessionLoginService implements ISessionLoginService {
       );
     }
 
-    const idTokenAudience = this.normaliseAudience(nhsLoginResult.result.idTokenAudience);
+    const idTokenAudience = this.resolveValidatedAudience(nhsLoginResult.result.idTokenAudience);
 
     if (!idTokenAudience) {
       return this.failure(
@@ -159,13 +162,24 @@ export class SessionLoginService implements ISessionLoginService {
     };
   }
 
-  private normaliseAudience(audience: string | string[] | undefined): string | undefined {
-    if (typeof audience !== "string") {
+  private resolveValidatedAudience(audience: string | string[] | undefined): string | undefined {
+    const trimmedExpectedAudience = this.nhsLoginClientId.trim();
+
+    if (trimmedExpectedAudience.length === 0) {
       return undefined;
     }
 
-    const trimmedAudience = audience.trim();
-    return trimmedAudience.length > 0 ? trimmedAudience : undefined;
+    if (typeof audience === "string") {
+      return audience.trim() === trimmedExpectedAudience ? trimmedExpectedAudience : undefined;
+    }
+
+    if (Array.isArray(audience)) {
+      return audience.some((entry) => entry.trim() === trimmedExpectedAudience)
+        ? trimmedExpectedAudience
+        : undefined;
+    }
+
+    return undefined;
   }
 
   private isValidSessionUserInfo(userInfo: ISessionUserInfo): boolean {
