@@ -13,6 +13,13 @@ const mockSessionLoginClientInstance = {
   getUserInfo: jest.fn(),
   fetchPublicKeyById: jest.fn(),
 };
+const mockSessionLoginTokenVerifierInstance = { verifyToken: jest.fn() };
+const mockNhsLoginServiceInstance = { executeCallback: jest.fn() };
+const mockSessionDbClientInstance = { createSession: jest.fn() };
+const mockSessionTokenServiceInstance = {
+  signAccessToken: jest.fn(),
+  signRefreshToken: jest.fn(),
+};
 const mockSessionLoginServiceInstance = { executeCallback: jest.fn() };
 
 jest.mock("../lib/utils/utils", () => ({
@@ -39,7 +46,7 @@ jest.mock("../lib/db/db-client", () => ({
 }));
 
 jest.mock("../lib/db/session-db-client", () => ({
-  SessionDbClient: jest.fn().mockImplementation(() => ({ createSession: jest.fn() })),
+  SessionDbClient: jest.fn().mockImplementation(() => mockSessionDbClientInstance),
 }));
 
 jest.mock("../lib/http/http-client", () => ({
@@ -55,18 +62,15 @@ jest.mock("../lib/login/nhs-login-client", () => ({
 }));
 
 jest.mock("../lib/login/nhs-token-verifier", () => ({
-  NhsTokenVerifier: jest.fn().mockImplementation(() => ({ verifyToken: jest.fn() })),
+  NhsTokenVerifier: jest.fn().mockImplementation(() => mockSessionLoginTokenVerifierInstance),
 }));
 
 jest.mock("../lib/login/nhs-login-service", () => ({
-  NhsLoginService: jest.fn().mockImplementation(() => ({ executeCallback: jest.fn() })),
+  NhsLoginService: jest.fn().mockImplementation(() => mockNhsLoginServiceInstance),
 }));
 
 jest.mock("../lib/auth/session-token-service", () => ({
-  SessionTokenService: jest.fn().mockImplementation(() => ({
-    signAccessToken: jest.fn(),
-    signRefreshToken: jest.fn(),
-  })),
+  SessionTokenService: jest.fn().mockImplementation(() => mockSessionTokenServiceInstance),
 }));
 
 jest.mock("./session-login-service", () => ({
@@ -133,6 +137,7 @@ describe("session-login-lambda init", () => {
     const { AwsSecretsClient } = await import("../lib/secrets/secrets-manager-client");
     const { NhsLoginClient } = await import("../lib/login/nhs-login-client");
     const { NhsTokenVerifier } = await import("../lib/login/nhs-token-verifier");
+    const { NhsLoginService } = await import("../lib/login/nhs-login-service");
     const { SessionTokenService } = await import("../lib/auth/session-token-service");
     const { SessionLoginService } = await import("./session-login-service");
 
@@ -145,15 +150,19 @@ describe("session-login-lambda init", () => {
       keyProvider: mockSessionLoginClientInstance,
       issuer: "https://nhs-login.example",
     });
+    expect(NhsLoginService).toHaveBeenCalledWith({
+      nhsTokenVerifier: mockSessionLoginTokenVerifierInstance,
+      nhsLoginClient: mockSessionLoginClientInstance,
+    });
     expect(SessionTokenService).toHaveBeenCalledWith({
       privateKey: "test-preview-cookie-private-key",
       accessTokenExpiryDurationMinutes: 15,
       refreshTokenExpiryDurationMinutes: 120,
     });
     expect(SessionLoginService).toHaveBeenCalledWith({
-      nhsLoginService: expect.any(Object),
-      sessionDbClient: expect.any(Object),
-      sessionTokenService: expect.any(Object),
+      nhsLoginService: mockNhsLoginServiceInstance,
+      sessionDbClient: mockSessionDbClientInstance,
+      sessionTokenService: mockSessionTokenServiceInstance,
       sessionMaxDurationMinutes: 60,
       nhsLoginClientId: "hometest-preview",
     });
