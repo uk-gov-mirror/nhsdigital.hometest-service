@@ -8,63 +8,32 @@
 
 SET search_path TO hometest;
 
-INSERT INTO supplier (
-  supplier_id,
-  supplier_name,
-  service_url,
-  website_url,
-  client_secret_name,
-  client_id,
-  oauth_token_path,
-  order_path,
-  oauth_scope,
-  results_path
-)
-VALUES (
-  'c1a2b3c4-1234-4def-8abc-123456789abc',
-  'Preventx',
-  'http://wiremock:8080',
-  'https://www.preventx.com/',
-  'test_supplier_client_secret',
-  'preventx-client-id',
-  '/oauth/token',
-  '/order',
-  'orders results',
-  '/results'
-)
-ON CONFLICT (supplier_id) DO NOTHING;
+-- Override dev/staging supplier credentials and service URL with local values.
+-- Goose migrations (000002, 000006, 000009) insert these suppliers with
+-- environment-specific credentials/URLs/paths that don't exist or don't match
+-- locally. WireMock expects: oauth at /oauth/token, orders at /order.
+UPDATE supplier
+SET
+  client_secret_name = 'test_supplier_client_secret',
+  service_url = 'http://wiremock:8080',
+  oauth_token_path = '/oauth/token',
+  order_path = '/order'
+WHERE supplier_id IN (
+  '11111111-1111-4111-8111-111111111111',
+  '77777777-7777-4777-8777-777777777777'
+);
 
-INSERT INTO supplier (
-  supplier_id,
-  supplier_name,
-  service_url,
-  website_url,
-  client_secret_name,
-  client_id,
-  oauth_token_path,
-  order_path,
-  oauth_scope,
-  results_path
-)
-VALUES (
-  'd2b3c4d5-2345-4abc-8def-23456789abcd',
-  'SH:24',
-  'http://wiremock:8080',
-  'https://sh24.org.uk/',
-  'test_supplier_client_secret',
-  'sh24-client-id',
-  '/oauth/token',
-  '/order',
-  'order results',
-  '/results'
-)
-ON CONFLICT (supplier_id) DO NOTHING;
-
+-- PCR test type (goose migration 000005 only seeds 31676001)
 INSERT INTO test_type (test_code, description)
-VALUES
-('31676001', 'HIV antigen test'),
-('PCR', 'Polymerase Chain Reaction')
+VALUES ('PCR', 'Polymerase Chain Reaction')
 ON CONFLICT (test_code) DO NOTHING;
+
+-- PCR offerings (goose migration 000012 only seeds test code 31676001)
+INSERT INTO la_supplier_offering (offering_id, supplier_id, test_code, la_code, effective_from)
+VALUES
+('20000002-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111', 'PCR', '1440', DATE '2026-02-09'),
+('20000002-0000-4000-8000-000000000002', '77777777-7777-4777-8777-777777777777', 'PCR', '4230', DATE '2026-02-09')
+ON CONFLICT (la_code, supplier_id, test_code) DO NOTHING;
 
 INSERT INTO patient_mapping (patient_uid, nhs_number, birth_date)
 VALUES (
@@ -82,18 +51,10 @@ VALUES (
 )
 ON CONFLICT (nhs_number) DO NOTHING;
 
-INSERT INTO la_supplier_offering (offering_id, supplier_id, test_code, la_code, effective_from)
-VALUES
-('a5e6f7a8-5678-4def-8abc-56789abcdefa', 'c1a2b3c4-1234-4def-8abc-123456789abc', '31676001', '1440', DATE '2026-02-09'),
-('b6f7a8b9-6789-4efa-8bcd-6789abcdefab', 'c1a2b3c4-1234-4def-8abc-123456789abc', 'PCR', '1440', DATE '2026-02-09'),
-('c7a8b9c0-7890-4fab-8cde-789abcdefabc', 'd2b3c4d5-2345-4abc-8def-23456789abcd', '31676001', '4230', DATE '2026-02-09'),
-('d8b9c0d1-8901-4abc-8def-89abcdefabcd', 'd2b3c4d5-2345-4abc-8def-23456789abcd', 'PCR', '4230', DATE '2026-02-09')
-ON CONFLICT (la_code, supplier_id, test_code) DO NOTHING;
-
 INSERT INTO test_order (order_uid, supplier_id, patient_uid, test_code, originator)
 VALUES (
   'e9c0d1e2-9012-4bcd-8efa-90abcdefabcd',
-  'c1a2b3c4-1234-4def-8abc-123456789abc',
+  '11111111-1111-4111-8111-111111111111',
   'e3c4d5e6-3456-4bcd-8efa-3456789abcde',
   '31676001',
   'seed-migration'
@@ -103,7 +64,7 @@ ON CONFLICT (order_uid) DO NOTHING;
 INSERT INTO test_order (order_uid, supplier_id, patient_uid, test_code, originator)
 VALUES (
   'fab1c2d3-0123-4cde-8fab-01abcdefabcd',
-  'd2b3c4d5-2345-4abc-8def-23456789abcd',
+  '77777777-7777-4777-8777-777777777777',
   'f4d5e6f7-4567-4cde-8fab-456789abcdef',
   'PCR',
   'seed-migration'

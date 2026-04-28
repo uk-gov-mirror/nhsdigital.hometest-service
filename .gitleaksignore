@@ -1,3 +1,12 @@
 # SEE: https://github.com/gitleaks/gitleaks/blob/master/README.md#gitleaksignore
 
 cd9c0efec38c5d63053dd865e5d4e207c0760d91:docs/guides/Perform_static_analysis.md:generic-api-key:37
+
+# False positives: AWS Secrets Manager path names, not actual secrets
+
+lambdas/goose-migrator-lambda/migrations/000002_seed_home_test_data.sql:generic-api-key:18
+lambdas/goose-migrator-lambda/migrations/000002_seed_home_test_data.sql:generic-api-key:42
+
+# False positives: OAuth client_id values (public identifiers, not secrets)
+lambdas/goose-migrator-lambda/migrations/000007_supplier_data_update.sql:generic-api-key:3
+lambdas/goose-migrator-lambda/migrations/000007_supplier_data_update.sql:generic-api-key:8

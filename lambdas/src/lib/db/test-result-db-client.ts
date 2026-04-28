@@ -11,11 +11,7 @@ export interface TestResult {
 export class TestResultDbClient {
   constructor(private readonly dbClient: DBClient) {}
 
-  public async getResult(
-    orderId: string,
-    nhsNumber: string,
-    dateOfBirth: Date,
-  ) {
+  public async getResult(orderId: string, nhsNumber: string, dateOfBirth: Date) {
     const query = `
       SELECT
           rs.result_id AS id,
@@ -39,10 +35,11 @@ export class TestResultDbClient {
       LIMIT 1;
     `;
 
-    const result = await this.dbClient.query<
-      TestResult,
-      [string, string, Date]
-    >(query, [orderId, nhsNumber, dateOfBirth]);
+    const result = await this.dbClient.query<TestResult, [string, string, Date]>(query, [
+      orderId,
+      nhsNumber,
+      dateOfBirth,
+    ]);
 
     return result?.rows[0] ?? null;
   }

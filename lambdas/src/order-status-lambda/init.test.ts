@@ -13,6 +13,7 @@ import { AwsSecretsClient } from "../lib/secrets/secrets-manager-client";
 import { AWSSQSClient } from "../lib/sqs/sqs-client";
 import { testComponentCreationOrder } from "../lib/test-utils/component-integration-helpers";
 import { restoreEnvironment, setupEnvironment } from "../lib/test-utils/environment-test-helpers";
+import { InsertResultStatusCommand } from "./db/commands/insert-result-status";
 import { buildEnvironment as init } from "./init";
 
 jest.mock("../lib/db/order-status-db");
@@ -26,6 +27,7 @@ jest.mock("../lib/db/db-config");
 jest.mock("../lib/notify/services/order-status-notify-service");
 jest.mock("../lib/notify/message-builders/order-status/order-confirmed-message-builder");
 jest.mock("../lib/reminder/order-status-reminder-service");
+jest.mock("./db/commands/insert-result-status");
 
 describe("init", () => {
   const originalEnv = process.env;
@@ -106,6 +108,7 @@ describe("init", () => {
         orderStatusDb: expect.any(OrderStatusService),
         orderStatusReminderService: expect.any(OrderStatusReminderService),
         orderStatusNotifyService: expect.any(OrderStatusNotifyService),
+        insertResultStatusCommand: expect.any(InsertResultStatusCommand),
       });
     });
   });

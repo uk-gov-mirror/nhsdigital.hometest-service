@@ -13,11 +13,13 @@ import { OrderStatusReminderService } from "../lib/reminder/order-status-reminde
 import { AwsSecretsClient } from "../lib/secrets/secrets-manager-client";
 import { AWSSQSClient } from "../lib/sqs/sqs-client";
 import { retrieveMandatoryEnvVariable } from "../lib/utils/utils";
+import { InsertResultStatusCommand } from "./db/commands/insert-result-status";
 
 export interface Environment {
   orderStatusDb: OrderStatusService;
   orderStatusReminderService: OrderStatusReminderService;
   orderStatusNotifyService: OrderStatusNotifyService;
+  insertResultStatusCommand: InsertResultStatusCommand;
 }
 
 export function buildEnvironment(): Environment {
@@ -46,11 +48,13 @@ export function buildEnvironment(): Environment {
     sqsClient,
     notifyMessagesQueueUrl,
   });
+  const insertResultStatusCommand = new InsertResultStatusCommand(dbClient);
 
   return {
     orderStatusDb,
     orderStatusReminderService,
     orderStatusNotifyService,
+    insertResultStatusCommand,
   };
 }
 

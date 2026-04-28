@@ -2,7 +2,7 @@ import { OrderStatusCode } from "./TestOrder";
 
 export type UUID = string;
 
-export type ReminderStatusCode = "SCHEDULED" | "QUEUED";
+export type ReminderStatusCode = "SCHEDULED" | "QUEUED" | "CANCELLED";
 
 export interface ReminderModel {
   reminder_id: string;

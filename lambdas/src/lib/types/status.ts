@@ -11,4 +11,5 @@ export enum OrderStatus {
 export enum ResultStatus {
   Result_Available = "RESULT_AVAILABLE",
   Result_Withheld = "RESULT_WITHHELD",
+  Result_Processed = "RESULT_PROCESSED",
 }

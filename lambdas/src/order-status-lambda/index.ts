@@ -3,104 +3,62 @@ import cors from "@middy/http-cors";
 import httpErrorHandler from "@middy/http-error-handler";
 import httpSecurityHeaders from "@middy/http-security-headers";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import z from "zod";
+import { ValidationError } from "src/lib/validation";
 
 import { OrderStatusUpdateParams } from "../lib/db/order-status-db";
 import { createFhirErrorResponse, createFhirResponse } from "../lib/fhir-response";
 import { securityHeaders } from "../lib/http/security-headers";
-import {
-  FHIRCodeableConceptSchema,
-  FHIRIdentifierSchema,
-  FHIRReferenceSchema,
-  FHIRTaskSchema,
-} from "../lib/models/fhir/fhir-schemas";
-import { getCorrelationIdFromEventHeaders } from "../lib/utils/utils";
 import { corsOptions } from "./cors-configuration";
 import { init } from "./init";
-import { IncomingBusinessStatus } from "./types";
-import { businessStatusMapping, extractIdFromReference } from "./utils";
+import { resolveStatus } from "./models/mappings";
+import { StatusKind } from "./models/types";
+import { validateAndExtractCorrelationId } from "./validation/correlation-id-validation";
+import { validatePatientOwnership } from "./validation/patient-validation";
+import { validateAndExtractTask } from "./validation/task-validation";
 
 const name = "order-status-lambda";
 
-const orderStatusFHIRTaskSchema = FHIRTaskSchema.extend({
-  identifier: z.array(FHIRIdentifierSchema).min(1).max(1),
-  for: FHIRReferenceSchema,
-  lastModified: z.iso.datetime(),
-  businessStatus: FHIRCodeableConceptSchema.extend({
-    text: z.enum(IncomingBusinessStatus),
-  }),
-});
-
-export type OrderStatusFHIRTask = z.infer<typeof orderStatusFHIRTaskSchema>;
+const fhirErrorFromValidation = (error: ValidationError): APIGatewayProxyResult =>
+  createFhirErrorResponse(error.errorCode, error.errorType, error.errorMessage, error.severity);
 
 /**
  * Lambda handler for POST /test-order/status endpoint
- * Adds a status record for a given order based on the incoming FHIR Task resource
+ * Validates and processes an incoming FHIR Task resource, updating either the order status or
+ * result status, dispatching notifications, and managing reminders accordingly.
  */
 export const lambdaHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
-  const { orderStatusDb, orderStatusReminderService, orderStatusNotifyService } = init();
+  const {
+    orderStatusDb,
+    orderStatusReminderService,
+    orderStatusNotifyService,
+    insertResultStatusCommand,
+  } = init();
 
   console.info(name, "Received order status update request", {
     path: event.path,
     method: event.httpMethod,
   });
 
-  let task: unknown;
-
-  if (!event.body) {
-    console.error(name, "Missing request body");
-
-    return createFhirErrorResponse(400, "invalid", "Request body is required", "error");
-  }
-
   try {
-    task = JSON.parse(event.body);
-  } catch (error) {
-    console.error(name, "Invalid JSON in request body", { error });
-
-    return createFhirErrorResponse(400, "invalid", "Invalid JSON in request body", "error");
-  }
-
-  const validationResult = orderStatusFHIRTaskSchema.safeParse(task);
-
-  if (!validationResult.success) {
-    const errorDetails = validationResult.error.issues
-      .map((err) => `${err.path.join(".")}: ${err.message}`)
-      .join("; ");
-
-    console.error(name, "Task validation failed", {
-      error: errorDetails,
-    });
-
-    return createFhirErrorResponse(400, "invalid", errorDetails, "error");
-  }
-
-  const validatedTask = validationResult.data;
-  const orderId = validatedTask.identifier[0].value;
-
-  try {
-    let correlationId: string;
-
-    try {
-      correlationId = getCorrelationIdFromEventHeaders(event);
-    } catch (error) {
-      console.error(name, "Failed to retrieve correlation ID", { error });
-
-      return createFhirErrorResponse(
-        400,
-        "invalid",
-        error instanceof Error ? error.message : "Invalid correlation ID",
-        "error",
-      );
+    const correlationIdValidationResult = validateAndExtractCorrelationId(event);
+    if (!correlationIdValidationResult.success) {
+      return fhirErrorFromValidation(correlationIdValidationResult.error);
     }
+    const correlationId = correlationIdValidationResult.data;
 
-    // Verify order exists and retrieve associated patient ID
+    const taskValidationResult = validateAndExtractTask(event.body);
+    if (!taskValidationResult.success) {
+      return fhirErrorFromValidation(taskValidationResult.error);
+    }
+    const task = taskValidationResult.data;
+    const orderId = task.identifier[0].value;
+    const logContext = { orderId, correlationId };
+
     const orderPatientId = await orderStatusDb.getPatientIdFromOrder(orderId);
-
     if (!orderPatientId) {
-      console.error(name, "Order not found", { orderId });
+      console.error(name, "Order not found", logContext);
 
       return createFhirErrorResponse(
         404,
@@ -110,83 +68,86 @@ export const lambdaHandler = async (
       );
     }
 
-    // Verify patient ownership
-    const patientIdFromTask = extractIdFromReference(validatedTask.for.reference);
+    const patientOwnershipValidationResult = validatePatientOwnership(
+      task.for.reference,
+      orderPatientId,
+      orderId,
+    );
 
-    if (!patientIdFromTask) {
-      console.error(name, "Invalid patient reference format", {
-        reference: validatedTask.for.reference,
-      });
-
-      return createFhirErrorResponse(400, "invalid", "Invalid patient reference format", "error");
+    if (!patientOwnershipValidationResult.success) {
+      return fhirErrorFromValidation(patientOwnershipValidationResult.error);
     }
 
-    if (patientIdFromTask !== orderPatientId) {
-      console.error(name, "Patient mismatch for order", {
-        orderId,
-        expectedPatient: orderPatientId,
-        providedPatient: patientIdFromTask,
-      });
-
-      return createFhirErrorResponse(
-        400,
-        "invalid",
-        "Patient ID does not match the order",
-        "error",
-      );
-    }
-
-    // Check for idempotency via Correlation ID
     const idempotencyCheck = await orderStatusDb.checkIdempotency(orderId, correlationId);
-
     if (idempotencyCheck.isDuplicate) {
-      console.info(name, "Duplicate update detected via correlation ID", {
-        orderId,
-        correlationId,
-      });
+      console.info(name, "Duplicate update detected via correlation ID", logContext);
 
-      return createFhirResponse(200, validatedTask);
+      return createFhirResponse(200, task);
     }
 
-    // Process the update
-    const statusOrderUpdateParams: OrderStatusUpdateParams = {
-      orderId,
-      statusCode: businessStatusMapping[validatedTask.businessStatus.text],
-      createdAt: validatedTask.lastModified,
-      correlationId,
-    };
+    const incomingStatus = task.businessStatus.text;
+    const resolved = resolveStatus(incomingStatus);
 
-    await orderStatusDb.addOrderStatusUpdate(statusOrderUpdateParams);
+    switch (resolved.kind) {
+      case StatusKind.Result: {
+        try {
+          await insertResultStatusCommand.execute(orderId, resolved.status, correlationId);
+        } catch (error) {
+          console.error(name, "Failed to update result status", {
+            ...logContext,
+            resultStatus: resolved.status,
+            error,
+          });
+        }
 
-    console.info(name, "Order status update added successfully", statusOrderUpdateParams);
+        console.info(name, "Result status update added successfully", {
+          ...logContext,
+          resultStatus: resolved.status,
+        });
 
-    try {
-      await orderStatusNotifyService.dispatch({
-        orderId,
-        patientId: orderPatientId,
-        correlationId,
-        statusCode: statusOrderUpdateParams.statusCode,
-      });
-    } catch (error) {
-      console.error(name, "Failed to dispatch order status notification", {
-        correlationId,
-        orderId,
-        error,
-      });
+        return createFhirResponse(201, task);
+      }
+
+      case StatusKind.Order: {
+        const statusOrderUpdateParams: OrderStatusUpdateParams = {
+          orderId,
+          statusCode: resolved.status,
+          createdAt: task.lastModified,
+          correlationId,
+        };
+
+        await orderStatusDb.addOrderStatusUpdate(statusOrderUpdateParams);
+        console.info(name, "Order status update added successfully", statusOrderUpdateParams);
+
+        try {
+          await orderStatusNotifyService.dispatch({
+            orderId,
+            patientId: orderPatientId,
+            correlationId,
+            statusCode: statusOrderUpdateParams.statusCode,
+          });
+        } catch (error) {
+          console.error(name, "Failed to dispatch order status notification", {
+            ...logContext,
+            error,
+          });
+        }
+
+        await orderStatusReminderService.handleOrderStatusUpdated({
+          orderId,
+          correlationId,
+          statusCode: statusOrderUpdateParams.statusCode,
+          triggeredAt: statusOrderUpdateParams.createdAt,
+        });
+
+        return createFhirResponse(201, task);
+      }
+
+      default:
+        return createFhirErrorResponse(400, "invalid", "Unrecognised business status", "error");
     }
-
-    await orderStatusReminderService.handleOrderStatusUpdated({
-      orderId,
-      correlationId,
-      statusCode: statusOrderUpdateParams.statusCode,
-      triggeredAt: statusOrderUpdateParams.createdAt,
-    });
-
-    return createFhirResponse(201, validatedTask);
   } catch (error) {
-    console.error(name, "Error processing order status update", {
-      error,
-    });
+    console.error(name, "Error processing order status update", { error });
     return createFhirErrorResponse(500, "exception", "An internal error occurred", "fatal");
   }
 };
