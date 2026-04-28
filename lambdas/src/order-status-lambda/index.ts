@@ -58,7 +58,7 @@ export const lambdaHandler = async (
 
     const orderPatientId = await orderStatusDb.getPatientIdFromOrder(orderId);
     if (!orderPatientId) {
-      console.error(name, "Order not found", { orderId });
+      console.error(name, "Order not found", logContext);
 
       return createFhirErrorResponse(
         404,
