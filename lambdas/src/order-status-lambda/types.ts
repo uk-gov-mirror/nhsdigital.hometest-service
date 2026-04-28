@@ -1,5 +1,5 @@
 export enum IncomingBusinessStatus {
-  CONFIRMED = "confirmed",
+  ORDER_ACCEPTED = "order-accepted",
   DISPATCHED = "dispatched",
   RECEIVED_AT_LAB = "received-at-lab",
 }

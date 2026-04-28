@@ -16,7 +16,7 @@ export const businessStatusMapping: Record<
   IncomingBusinessStatus,
   AllowedInternalBusinessStatuses
 > = {
-  [IncomingBusinessStatus.CONFIRMED]: AllowedInternalBusinessStatuses.CONFIRMED,
+  [IncomingBusinessStatus.ORDER_ACCEPTED]: AllowedInternalBusinessStatuses.CONFIRMED,
   [IncomingBusinessStatus.DISPATCHED]: AllowedInternalBusinessStatuses.DISPATCHED,
   [IncomingBusinessStatus.RECEIVED_AT_LAB]: AllowedInternalBusinessStatuses.RECEIVED,
 };

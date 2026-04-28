@@ -5,12 +5,12 @@ import { MemoryRouter } from "react-router-dom";
 import EnterMobileNumberPage from "@/routes/get-self-test-kit-for-HIV-journey/EnterMobileNumberPage";
 import { CreateOrderProvider, JourneyNavigationProvider, useCreateOrderContext } from "@/state";
 
-type SupplierSeedProps = {
-  supplierName: string;
+interface SeedSupplierProps {
   children: React.ReactNode;
-};
+  supplierName: string;
+}
 
-function SupplierSeed({ supplierName, children }: Readonly<SupplierSeedProps>) {
+const SeedSupplier = ({ children, supplierName }: SeedSupplierProps) => {
   const { updateOrderAnswers } = useCreateOrderContext();
 
   React.useEffect(() => {
@@ -20,7 +20,7 @@ function SupplierSeed({ supplierName, children }: Readonly<SupplierSeedProps>) {
   }, [supplierName, updateOrderAnswers]);
 
   return <>{children}</>;
-}
+};
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/enter-mobile-phone-number"]}>
@@ -417,17 +417,15 @@ describe("EnterMobileNumberPage", () => {
 
   describe("Supplier Name Substitution in Hint", () => {
     const createWrapperWithSupplier = (supplierName: string) => {
-      const WrapperWithSupplier = ({ children }: { children: React.ReactNode }) => {
-        return (
-          <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/enter-mobile-phone-number"]}>
-            <JourneyNavigationProvider>
-              <CreateOrderProvider>
-                <SupplierSeed supplierName={supplierName}>{children}</SupplierSeed>
-              </CreateOrderProvider>
-            </JourneyNavigationProvider>
-          </MemoryRouter>
-        );
-      };
+      const WrapperWithSupplier = ({ children }: { children: React.ReactNode }) => (
+        <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/enter-mobile-phone-number"]}>
+          <JourneyNavigationProvider>
+            <CreateOrderProvider>
+              <SeedSupplier supplierName={supplierName}>{children}</SeedSupplier>
+            </CreateOrderProvider>
+          </JourneyNavigationProvider>
+        </MemoryRouter>
+      );
 
       return WrapperWithSupplier;
     };

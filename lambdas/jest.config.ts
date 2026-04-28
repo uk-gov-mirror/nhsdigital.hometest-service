@@ -22,6 +22,7 @@ const config: Config = {
   ],
   moduleNameMapper: {
     "^@hometest-service/shared/(.*)$": "<rootDir>/../shared/$1",
+    "^@middy/(.*)$": "<rootDir>/node_modules/@middy/$1/index.js",
   },
   transform: {
     "^.+\\.ts$": [

@@ -67,7 +67,11 @@ function getPersistedPostcodeLookupState(): PersistedPostcodeLookupState {
 }
 
 export const PostcodeLookupProvider: React.FC<PostcodeLookupProviderProps> = ({ children }) => {
-  const [persistedState] = useState<PersistedPostcodeLookupState>(getPersistedPostcodeLookupState);
+  const [persistedState] = useState<PersistedPostcodeLookupState>(() =>
+    sessionService.rehydratePostcodeLookup<PersistedPostcodeLookupState>(
+      defaultPersistedPostcodeLookupState,
+    ),
+  );
   const [postcode, setPostcode] = useState<string>(persistedState.postcode);
   const [addresses, setAddresses] = useState<AddressResult[]>(persistedState.addresses);
   const [selectedAddress, setSelectedAddress] = useState<AddressResult | null>(

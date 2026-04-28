@@ -12,12 +12,12 @@ import {
   useCreateOrderContext,
 } from "@/state";
 
-type SupplierSeedProps = {
-  supplierName: string;
+interface SeedSupplierProps {
   children: React.ReactNode;
-};
+  supplierName: string;
+}
 
-function SupplierSeed({ supplierName, children }: Readonly<SupplierSeedProps>) {
+const SeedSupplier = ({ children, supplierName }: SeedSupplierProps) => {
   const { updateOrderAnswers } = useCreateOrderContext();
 
   React.useEffect(() => {
@@ -27,14 +27,14 @@ function SupplierSeed({ supplierName, children }: Readonly<SupplierSeedProps>) {
   }, [supplierName, updateOrderAnswers]);
 
   return <>{children}</>;
-}
-
-type AuthUserSeedProps = {
-  phoneNumber: string;
-  children: React.ReactNode;
 };
 
-function AuthUserSeed({ phoneNumber, children }: Readonly<AuthUserSeedProps>) {
+interface SeedUserProps {
+  children: React.ReactNode;
+  phoneNumber: string;
+}
+
+const SeedUser = ({ children, phoneNumber }: SeedUserProps) => {
   const { setUser } = useAuth();
 
   React.useEffect(() => {
@@ -51,7 +51,7 @@ function AuthUserSeed({ phoneNumber, children }: Readonly<AuthUserSeedProps>) {
   }, [phoneNumber, setUser]);
 
   return <>{children}</>;
-}
+};
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/confirm-mobile-phone-number"]}>
@@ -463,19 +463,17 @@ describe("ConfirmMobileNumberPage", () => {
 
   describe("Supplier Name Substitution in Hint", () => {
     const createWrapperWithSupplier = (supplierName: string) => {
-      const WrapperWithSupplier = ({ children }: { children: React.ReactNode }) => {
-        return (
-          <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/confirm-mobile-phone-number"]}>
-            <AuthProvider>
-              <JourneyNavigationProvider>
-                <CreateOrderProvider>
-                  <SupplierSeed supplierName={supplierName}>{children}</SupplierSeed>
-                </CreateOrderProvider>
-              </JourneyNavigationProvider>
-            </AuthProvider>
-          </MemoryRouter>
-        );
-      };
+      const WrapperWithSupplier = ({ children }: { children: React.ReactNode }) => (
+        <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/confirm-mobile-phone-number"]}>
+          <AuthProvider>
+            <JourneyNavigationProvider>
+              <CreateOrderProvider>
+                <SeedSupplier supplierName={supplierName}>{children}</SeedSupplier>
+              </CreateOrderProvider>
+            </JourneyNavigationProvider>
+          </AuthProvider>
+        </MemoryRouter>
+      );
 
       return WrapperWithSupplier;
     };
@@ -502,19 +500,17 @@ describe("ConfirmMobileNumberPage", () => {
   describe("NHS Login Phone Number Scenarios", () => {
     // Helper to create wrapper with specific user phone number
     const createWrapperWithPhone = (phoneNumber: string) => {
-      const WrapperWithPhone = ({ children }: { children: React.ReactNode }) => {
-        return (
-          <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/confirm-mobile-phone-number"]}>
-            <AuthProvider>
-              <JourneyNavigationProvider>
-                <CreateOrderProvider>
-                  <AuthUserSeed phoneNumber={phoneNumber}>{children}</AuthUserSeed>
-                </CreateOrderProvider>
-              </JourneyNavigationProvider>
-            </AuthProvider>
-          </MemoryRouter>
-        );
-      };
+      const WrapperWithPhone = ({ children }: { children: React.ReactNode }) => (
+        <MemoryRouter initialEntries={["/get-self-test-kit-for-HIV/confirm-mobile-phone-number"]}>
+          <AuthProvider>
+            <JourneyNavigationProvider>
+              <CreateOrderProvider>
+                <SeedUser phoneNumber={phoneNumber}>{children}</SeedUser>
+              </CreateOrderProvider>
+            </JourneyNavigationProvider>
+          </AuthProvider>
+        </MemoryRouter>
+      );
 
       return WrapperWithPhone;
     };
